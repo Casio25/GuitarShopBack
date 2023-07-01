@@ -4,6 +4,7 @@ export class CreateOrderDto {
   orders: Order[];
   userName: string;
   userPhoneNumber: number;
+  userEmail: string;
   totalPrice: number;
 }
 

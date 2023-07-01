@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { OrderService } from './../../Services/order/order.service';
 import { Body, Controller, Post, Get, Param } from '@nestjs/common';
 import { CreateOrderDto } from 'src/logic/Dto/order/create-order.dto';
@@ -5,7 +6,7 @@ import * as fs from 'fs';
 
 @Controller('order')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) { }
+  constructor(private readonly orderService: OrderService) {}
 
   @Get(':id')
   getId(@Param('id') id: string) {
@@ -20,9 +21,20 @@ export class OrderController {
     };
 
     fs.appendFileSync('order.txt', JSON.stringify(orderWithId) + '\n');
-    return {
-      order: orderWithId,
-    };
+    this.orderService
+      .sendEmail(orderWithId.orderId, orderWithId.userEmail)
+      .then(() => {
+        return {
+          order: orderWithId,
+          message: 'Order created and email sent successfully',
+        };
+      })
+      .catch((error) => {
+        return {
+          order: orderWithId,
+          message: 'Order created, but email sending failed',
+        };
+      });
   }
 }
 
@@ -35,7 +47,7 @@ function RandomOrder() {
   let order = '';
 
   do {
-    order = `${randomOrderSymbols} / ${Date.now()}`
+    order = `${randomOrderSymbols} / ${Date.now()}`;
   } while (generatedOrders.has(order));
   generatedOrders.add(order);
 
