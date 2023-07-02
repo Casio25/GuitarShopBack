@@ -3,6 +3,7 @@ import { OrderService } from './../../Services/order/order.service';
 import { Body, Controller, Post, Get, Param } from '@nestjs/common';
 import { CreateOrderDto } from 'src/logic/Dto/order/create-order.dto';
 import * as fs from 'fs';
+import { threadId } from 'worker_threads';
 
 @Controller('order')
 export class OrderController {
@@ -15,41 +16,6 @@ export class OrderController {
 
   @Post()
   createOrder(@Body() createOrderDto: CreateOrderDto) {
-    const orderWithId = {
-      ...createOrderDto,
-      orderId: RandomOrder(createOrderDto.date),
-    };
-
-    fs.appendFileSync('order.txt', JSON.stringify(orderWithId) + '\n');
-    this.orderService
-      .sendEmail(orderWithId.orderId, orderWithId.userEmail)
-      .then(() => {
-        return {
-          order: orderWithId,
-          message: 'Order created and email sent successfully',
-        };
-      })
-      .catch((error) => {
-        return {
-          order: orderWithId,
-          message: 'Order created, but email sending failed',
-        };
-      });
+    return this.orderService.createOrder(createOrderDto)
   }
-}
-
-import * as func from '../../../data/util.js';
-
-const randomOrderSymbols = func.RandomSymbols();
-
-function RandomOrder(date: string) {
-  const generatedOrders = new Set();
-  let order = '';
-
-  do {
-    order = `${randomOrderSymbols} / ${date}`;
-  } while (generatedOrders.has(order));
-  generatedOrders.add(order);
-
-  return order;
 }

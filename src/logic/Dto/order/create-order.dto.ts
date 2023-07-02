@@ -9,7 +9,7 @@ export class CreateOrderDto {
   date: string;
   @IsString()
   userName: string;
-  @IsInt()
+  @IsString()
   userPhoneNumber: number;
   userEmail: string;
   totalPrice: number;
