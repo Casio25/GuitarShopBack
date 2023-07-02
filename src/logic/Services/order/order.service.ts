@@ -20,14 +20,14 @@ export class OrderService {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: 'your email',
-          pass: 'your password',
+          user: 'mishakolomiets355@gmail.com',
+          pass: 'jtkrcyyvszokkbqz',
         },
       });
 
       // Define email message
       const mailOptions = {
-        from: 'your email', // Sender address
+        from: 'mishakolomietsus@gmail.com', // Sender address
         to: userEmail, // Recipient address
         subject: 'Order Confirmation', // Email subject
         text: `Your order with ID ${orderId} has been confirmed.`, // Email body

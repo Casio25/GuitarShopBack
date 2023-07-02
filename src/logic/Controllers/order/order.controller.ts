@@ -17,7 +17,7 @@ export class OrderController {
   createOrder(@Body() createOrderDto: CreateOrderDto) {
     const orderWithId = {
       ...createOrderDto,
-      orderId: RandomOrder(),
+      orderId: RandomOrder(createOrderDto.date),
     };
 
     fs.appendFileSync('order.txt', JSON.stringify(orderWithId) + '\n');
@@ -42,12 +42,12 @@ import * as func from '../../../data/util.js';
 
 const randomOrderSymbols = func.RandomSymbols();
 
-function RandomOrder() {
+function RandomOrder(date: string) {
   const generatedOrders = new Set();
   let order = '';
 
   do {
-    order = `${randomOrderSymbols} / ${Date.now()}`;
+    order = `${randomOrderSymbols} / ${date}`;
   } while (generatedOrders.has(order));
   generatedOrders.add(order);
 
