@@ -5,8 +5,12 @@ import * as nodemailer from 'nodemailer';
 import { RandomSymbols } from '../../../data/util';
 import * as fs from 'fs';
 
+interface IOrderService {
+  createOrder(createOrderDto: CreateOrderDto): CreateOrderDto;
+}
+
 @Injectable()
-export class OrderService {
+export class OrderService implements IOrderService {
   private orders: CreateOrderDto[] = [];
 
   createOrder(createOrderDto: CreateOrderDto): CreateOrderDto {
@@ -44,7 +48,6 @@ export class OrderService {
 
   private sendEmail(orderId: string, userEmail: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -53,12 +56,11 @@ export class OrderService {
         },
       });
 
-      // Define email message
       const mailOptions = {
-        from: 'mishakolomietsus@gmail.com', 
-        to: userEmail, 
-        subject: 'Order Confirmation', 
-        text: `Your order with ID ${orderId} has been confirmed.`, 
+        from: 'mishakolomietsus@gmail.com',
+        to: userEmail,
+        subject: 'Order Confirmation',
+        text: `Your order with ID ${orderId} has been confirmed.`,
       };
 
       transporter.sendMail(mailOptions, (error, info) => {
