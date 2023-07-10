@@ -3,17 +3,22 @@ import { Injectable } from '@nestjs/common';
 import { CreateOrderDto } from 'src/logic/Dto/order/create-order.dto';
 import * as nodemailer from 'nodemailer';
 import { RandomSymbols } from '../../../data/util';
+import {ICreateOrder} from "../../../utils/interface/orderInterface"
+import {IMailOption} from "../../../utils/interface/mailInterface"
+
 import * as fs from 'fs';
 
-interface IOrderService {
-  createOrder(createOrderDto: CreateOrderDto): CreateOrderDto;
-}
+
+
+
+
+
 
 @Injectable()
-export class OrderService implements IOrderService {
+export class OrderService {
   private orders: CreateOrderDto[] = [];
 
-  createOrder(createOrderDto: CreateOrderDto): CreateOrderDto {
+  createOrder(createOrderDto: ICreateOrder): ICreateOrder {
     this.orders.push(createOrderDto);
     createOrderDto.orderId = this.randomOrder(createOrderDto.date);
     this.saveOrderToFile(createOrderDto);
@@ -28,7 +33,7 @@ export class OrderService implements IOrderService {
     return createOrderDto;
   }
 
-  private saveOrderToFile(order: CreateOrderDto): void {
+  private saveOrderToFile(order: ICreateOrder): void {
     const orderData = JSON.stringify(order) + '\n';
     fs.appendFileSync('order.txt', orderData);
   }
@@ -56,7 +61,7 @@ export class OrderService implements IOrderService {
         },
       });
 
-      const mailOptions = {
+      const mailOptions: IMailOption = {
         from: 'mishakolomietsus@gmail.com',
         to: userEmail,
         subject: 'Order Confirmation',
@@ -75,3 +80,8 @@ export class OrderService implements IOrderService {
     });
   }
 }
+
+// rename CreateOrderDto to Order
+
+// add interface to frontEnd
+
