@@ -5,6 +5,7 @@ import * as nodemailer from 'nodemailer';
 import { RandomSymbols } from '../../../data/util';
 import {ICreateOrder} from "../../../utils/interface/orderInterface"
 import {IMailOption} from "../../../utils/interface/mailInterface"
+import { createOrder } from './order.data-service';
 
 import * as fs from 'fs';
 
@@ -17,11 +18,13 @@ import * as fs from 'fs';
 @Injectable()
 export class OrderService {
   private orders: CreateOrderDto[] = [];
+  // private orderDataService : OrderDataService
 
   createOrder(createOrderDto: ICreateOrder): ICreateOrder {
     this.orders.push(createOrderDto);
     createOrderDto.orderId = this.randomOrder(createOrderDto.date);
     this.saveOrderToFile(createOrderDto);
+    // this.orderDataService.create(createOrderDto)
     this.sendEmail(createOrderDto.orderId, createOrderDto.userEmail)
       .then(() => {
         console.log('Order created and email sent successfully');
@@ -83,5 +86,4 @@ export class OrderService {
 
 // rename CreateOrderDto to Order
 
-// add interface to frontEnd
 
