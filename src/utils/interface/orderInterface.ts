@@ -4,13 +4,13 @@ export interface ICreateOrder {
   items: Order[];
   date: string;
   userName: string;
-  userPhoneNumber: number;
+  userPhoneNumber: string;
   userEmail: string;
   totalPrice: number;
 }
 
 interface Order {
-  id: number;
+  itemId: number;
   price: number;
   quantity: number;
 }

@@ -10,14 +10,14 @@ export class CreateOrderDto {
   @IsString()
   userName: string;
   @IsString()
-  userPhoneNumber: number;
+  userPhoneNumber: string;
   userEmail: string;
   totalPrice: number;
 }
 
 export class Order {
   @IsInt()
-  id: number;
+  itemId: number;
   price: number;
   @IsInt()
   quantity: number;
