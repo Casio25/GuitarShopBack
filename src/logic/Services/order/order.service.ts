@@ -25,7 +25,7 @@ export class OrderService {
     createOrderDto.orderId = this.randomOrder(createOrderDto.date);
     this.saveOrderToFile(createOrderDto);
     this.orderDataService.Test();
-    // this.orderDataService.createOne(createOrderDto)
+    this.orderDataService.createOne(createOrderDto)
     this.sendEmail(createOrderDto.orderId, createOrderDto.userEmail)
       .then(() => {
         console.log('Order created and email sent successfully');
