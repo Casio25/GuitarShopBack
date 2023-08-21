@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { CreateOrderDto } from 'src/logic/Dto/order/create-order.dto';
 import * as nodemailer from 'nodemailer';
 import { RandomSymbols } from '../../../data/util';
-import {ICreateOrder} from "../../../utils/interface/orderInterface"
-import {IMailOption} from "../../../utils/interface/mailInterface"
+import { ICreateOrder } from "../../../utils/interface/orderInterface"
+import { IMailOption } from "../../../utils/interface/mailInterface"
 // import { createOrder } from './order.data-service';
 import { OrderDataService } from './orderData.service';
 import * as fs from 'fs';
@@ -18,7 +18,7 @@ import * as fs from 'fs';
 @Injectable()
 export class OrderService {
   private orders: CreateOrderDto[] = [];
-  constructor (private orderDataService: OrderDataService){}
+  constructor(private orderDataService: OrderDataService) { }
 
   createOrder(createOrderDto: ICreateOrder) {
     this.orders.push(createOrderDto);
@@ -86,5 +86,3 @@ export class OrderService {
 }
 
 // rename CreateOrderDto to Order
-
-

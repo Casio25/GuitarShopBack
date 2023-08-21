@@ -1,6 +1,8 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+//npx prisma migrate dev --name added_user
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -16,24 +18,25 @@ model User {
   email String
   password String
   phoneNumber String
-  refreshToken String
   Order Order[]
 }
+
 model Order {
   id Int @id @default(autoincrement())
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  date String
-  totalPrice Int
+  user User? @relation(fields: [userId], references: [id])
+  userId Int?
+  date String?
+  totalPrice Int?
   items Item[]
 }
 
 model Item {
   id Int @id @default(autoincrement())
-  itemId Int
+  itemId Int?
   price Int
   quantity Int
-  order Order @relation(fields: [orderId], references: [id])
-  orderId Int
+  order Order? @relation(fields: [orderId], references: [id])
+  orderId Int?
 }
+
 

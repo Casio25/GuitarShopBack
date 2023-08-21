@@ -10,10 +10,10 @@ export class AuthController {
 
   @Post('signup')
   signUp(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+    return this.authService.createAuth(createAuthDto);
   }
-  @Post("signin")
-  signIn(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.signIn(createAuthDto);
-  }
+  // @Post("signin")
+  // signIn(@Body() createAuthDto: CreateAuthDto) {
+  //   return this.authService.signIn(createAuthDto);
+  // }
 }

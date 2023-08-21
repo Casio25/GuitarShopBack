@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { CatalogService } from '../../Services/catalog/catalog.service';
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { offers } from '../../../data/CatalogData.js';

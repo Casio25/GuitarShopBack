@@ -2,7 +2,7 @@
 // prettier-ignore
 import { ConsoleLogger, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Order } from '@prisma/client';
+import { Order, User } from '@prisma/client';
 import { ICreateOrder } from '../../../utils/interface/orderInterface'; 
 
 @Injectable()
@@ -14,9 +14,6 @@ export class OrderDataService {
     try {
       const createdOrder = await this.prisma.order.create({
         data: {
-          userEmail: order.userEmail,
-          userName: order.userName,
-          userPhoneNumber: order.userPhoneNumber,
           items: {
             create: order.items.map((item) => ({
               itemId: item.itemId,
