@@ -8,18 +8,26 @@ import { ICreateAuth } from './../utils/interface/authInterface';
 export class AuthDataService {
     constructor(private prisma: PrismaService) { }
 
-    async createUser(userData: ICreateAuth): Promise<User> {
+    
+    // Check if user with the same email already exists
+
+    async findUser(email: string): Promise<User> {
         try {
-            // Check if user with the same email already exists
-            const existingUser = await this.prisma.user.findFirst({
+            console.log(email)
+            return await this.prisma.user.findFirst({
                 where: {
-                    email: userData.email,
+                    email: email
                 },
             });
+        }
+        catch {
+            throw new Error( "user not found");
+        }
+    }
 
-            if (existingUser) {
-                throw new Error('User with this email already exists');
-            }
+    async createUser(userData: ICreateAuth): Promise<User> {
+        try {
+            
 
             // If no existing user found, create a new user
             const newUser = await this.prisma.user.create({
@@ -35,6 +43,7 @@ export class AuthDataService {
         } catch (error) {
             console.error('Error creating user:', error);
             throw new Error('User not created');
+            
         }
     }
 
