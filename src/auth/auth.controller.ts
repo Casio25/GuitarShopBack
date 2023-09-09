@@ -1,5 +1,7 @@
+import { SignInAuthDto } from './dto/signin-auth.dto';
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpCode, HttpStatus, Request, UseGuards } from '@nestjs/common';
+import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -12,8 +14,14 @@ export class AuthController {
   signUp(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.createAuth(createAuthDto);
   }
-  // @Post("signin")
-  // signIn(@Body() createAuthDto: CreateAuthDto) {
-  //   return this.authService.signIn(createAuthDto);
-  // }
+  @HttpCode(HttpStatus.OK)
+   @Post("signin")
+   signIn(@Body() signInAuthDto: SignInAuthDto) {
+   return this.authService.signIn(signInAuthDto);
+   }
+  @UseGuards(AuthGuard)
+  @Get('profile')
+  getProfile(@Request() req) {
+    return req.user;
+  }
 }

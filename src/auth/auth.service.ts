@@ -1,30 +1,24 @@
 import { AuthDataService } from './authData.service';
 /* eslint-disable prettier/prettier */
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ICreateAuth } from './../utils/interface/authInterface';
+import { ICreateAuth, ISignAuth } from './../utils/interface/authInterface';
 import { Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { SignInAuthDto } from './dto/signin-auth.dto';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from 'src/utils/interface/jwtpayloadInterface';
 import { Order, User } from '@prisma/client';
 import * as nodemailer from 'nodemailer';
-import { IMailOption } from "../utils/interface/mailInterface"
+import { IMailOption } from "../utils/interface/mailInterface";
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
-// export class AuthService extends PassportStrategy(Strategy) {
-//   constructor(private prisma: PrismaService) {
-//     super({
-//       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-//       secretOrKey: '1234',
-//     });
-//   }
-
-//   }
 export class AuthService {
-  private authors: CreateAuthDto[] = [];
-  constructor(private authDataService: AuthDataService){}
+  private authors: (CreateAuthDto | SignInAuthDto)[] = [];
+  constructor(private authDataService: AuthDataService,
+              private jwtService: JwtService){}
+  //creating new user
   async createAuth(createAuthDto: ICreateAuth){
     try{
     this.authDataService.Test();
@@ -44,6 +38,7 @@ export class AuthService {
       return { error: error.message }; 
     }
   }
+  //sending email
   private sendEmail(email: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const transporter = nodemailer.createTransport({
@@ -72,8 +67,18 @@ export class AuthService {
       });
     });
   }
+
+  async signIn(signInAuthDto: ISignAuth): Promise<any> {
+    const user = await this.authDataService.findUser(signInAuthDto.email);
+    if (user?.email !== signInAuthDto.email) {
+      throw new Error ("user with with email doesn't exists");
+    }
+    const { password, ...result } = user;
+    const payload = { sub: user.name, username: user.password };
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
+  }
 }
-
-
 
 

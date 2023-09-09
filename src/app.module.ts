@@ -7,6 +7,7 @@ import { OrderModule } from './logic/Modules/order/order.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 
+
 @Module({
   imports: [CatalogModule, OrderModule, PrismaModule, AuthModule],
   controllers: [AppController],

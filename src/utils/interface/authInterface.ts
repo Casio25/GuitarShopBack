@@ -5,3 +5,7 @@ export interface ICreateAuth {
     password: string;
     phoneNumber: string;
 }
+export interface ISignAuth {
+    email: string;
+    password: string;
+}
