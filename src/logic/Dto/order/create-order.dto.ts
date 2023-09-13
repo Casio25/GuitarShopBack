@@ -7,10 +7,6 @@ export class CreateOrderDto {
   items: Order[];
   @IsString()
   date: string;
-  @IsString()
-  userName: string;
-  @IsString()
-  userPhoneNumber: string;
   userEmail: string;
   totalPrice: number;
 }

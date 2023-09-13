@@ -14,6 +14,9 @@ export class OrderDataService {
     try {
       const createdOrder = await this.prisma.order.create({
         data: {
+          userEmail: order.userEmail,
+          totalPrice: order.totalPrice,
+          date: order.date,
           items: {
             create: order.items.map((item) => ({
               itemId: item.itemId,
