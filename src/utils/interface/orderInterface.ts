@@ -4,6 +4,7 @@ export interface ICreateOrder {
   items: Order[];
   date: string;
   userEmail: string;
+  userPassword: string;
   totalPrice: number;
 }
 

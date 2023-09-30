@@ -12,6 +12,7 @@ import { Order, User } from '@prisma/client';
 import * as nodemailer from 'nodemailer';
 import { IMailOption } from "../utils/interface/mailInterface";
 import { JwtService } from '@nestjs/jwt';
+import { IUser } from 'src/utils/interface/IUser';
 
 @Injectable()
 export class AuthService {
@@ -71,14 +72,25 @@ export class AuthService {
   async signIn(signInAuthDto: ISignAuth): Promise<any> {
     const user = await this.authDataService.findUser(signInAuthDto.email);
     if (user?.email !== signInAuthDto.email) {
-      throw new Error ("user with with email doesn't exists");
+      return { error: "User with this email doesn't exist" };
     }
+
+    const isPasswordValid = user.password === signInAuthDto.password;
+    if (!isPasswordValid) {
+      return { error: "Wrong password" };
+    }
+
     const { password, ...result } = user;
-    const payload = { sub: user.name, username: user.password };
+    const payload = { id: user.id, email: user.email };
+
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
   }
+
+
+
+
 }
 
 

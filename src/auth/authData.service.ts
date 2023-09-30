@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User, Order } from '@prisma/client';
 import { ICreateAuth } from './../utils/interface/authInterface';
+import { IUser } from 'src/utils/interface/IUser';
+
 
 @Injectable()
 export class AuthDataService {
@@ -51,5 +53,7 @@ export class AuthDataService {
     async Test() {
         console.log('testing authDataService');
     }
+
+   
 }
 

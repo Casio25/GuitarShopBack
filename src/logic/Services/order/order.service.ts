@@ -1,13 +1,17 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { Injectable, Req } from '@nestjs/common';
 import { CreateOrderDto } from 'src/logic/Dto/order/create-order.dto';
 import * as nodemailer from 'nodemailer';
 import { RandomSymbols } from '../../../data/util';
 import { ICreateOrder } from "../../../utils/interface/orderInterface"
 import { IMailOption } from "../../../utils/interface/mailInterface"
+import { IGetOrder } from 'src/utils/interface/IGetOrder';
 // import { createOrder } from './order.data-service';
 import { OrderDataService } from './orderData.service';
+import { AuthDataService } from 'src/auth/authData.service';
+import { AuthService } from 'src/auth/auth.service';
 import * as fs from 'fs';
+
 
 
 
@@ -18,14 +22,18 @@ import * as fs from 'fs';
 @Injectable()
 export class OrderService {
   private orders: CreateOrderDto[] = [];
-  constructor(private orderDataService: OrderDataService) { }
+  constructor(private orderDataService: OrderDataService,
+    private authDataService: AuthDataService,
+    private authService: AuthService) { }
 
-  createOrder(createOrderDto: ICreateOrder) {
+
+  async createOrder(createOrderDto: ICreateOrder) {
     this.orders.push(createOrderDto);
     createOrderDto.orderId = this.randomOrder(createOrderDto.date);
     this.saveOrderToFile(createOrderDto);
     this.orderDataService.Test();
-    this.orderDataService.createOne(createOrderDto)
+    const user = await this.authDataService.findUser(createOrderDto.userEmail);
+    this.orderDataService.createOne(createOrderDto, user)
     this.sendEmail(createOrderDto.orderId, createOrderDto.userEmail)
       .then(() => {
         console.log('Order created and email sent successfully');
@@ -83,6 +91,30 @@ export class OrderService {
       });
     });
   }
+
+  async getOrders(email: string) {
+    try {
+      
+      const user = await this.authDataService.findUser(email);
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Find orders for this userid
+      console.log(user)
+      const where = {
+        userId: user.id,
+      }
+      const orderHistory = await this.orderDataService.findOrders(where);
+
+      return orderHistory;
+    } catch (error) {
+
+      console.error('Error:', error.message);
+      throw error;
+    }
+  }
+
 }
 
-// rename CreateOrderDto to Order

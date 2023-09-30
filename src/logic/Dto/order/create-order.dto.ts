@@ -8,6 +8,7 @@ export class CreateOrderDto {
   @IsString()
   date: string;
   userEmail: string;
+  userPassword: string;
   totalPrice: number;
 }
 
