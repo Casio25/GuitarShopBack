@@ -12,57 +12,58 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Users {
+model User {
   id Int @id @default(autoincrement())
   name String
   email String
   password String
   phoneNumber String
   role Role @default(USER)
-  Orders Orders[]
-  Products Products[]
-  Comments Comments[]
+  Orders Order[]
+  Products Product[]
+  Comments Comment[]
+
 
 }
 
-model Orders {
+model Order {
   id Int @id @default(autoincrement())
-  user Users? @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
   userId Int?
   date String?
   status String?
   totalPrice Int?
-  items Items[]
+  items Item[]
 }
 
-model Items{
+model Item{
   id Int @id @default(autoincrement())
   itemId Int?
   price Int
   quantity Int
-  order Orders? @relation(fields: [orderId], references: [id])
+  order Order? @relation(fields: [orderId], references: [id])
   orderId Int?
 }
 
-model Products {
+model Product {
   id Int @id @default(autoincrement())
-  author Users? @relation(fields: [authorId], references: [id])
+  author User? @relation(fields: [authorId], references: [id])
   authorId Int
   productName String
   type String
+  string String
   photo String
   price Int
-  string String
-  comments Comments[]
+  rating Int
+  comments Comment[]
 }
 
-model Comments {
+model Comment {
   id Int @id @default(autoincrement())
-  authorName String 
   comment String
-  author Users @relation(fields: [authorId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
   authorId Int
-  product Products @relation(fields: [productId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
   productId Int
 }
 
