@@ -6,7 +6,7 @@ import { offers } from '../../../data/CatalogData.js';
 import { CreateProductDto } from 'src/logic/Dto/catalog/create-product.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { IProductAuth } from 'src/utils/interface/ProductInterface';
-import { GetProductsDto } from 'src/logic/Dto/catalog/get-products.dto';
+import { GetProductsQueryParamDto} from 'src/logic/Dto/catalog/get-products-query-param.dto';
 
 @Controller('catalog')
 export class CatalogController {
@@ -16,10 +16,10 @@ export class CatalogController {
     return [{ id }];
   }
 
-  @Get()
-  getType(@Query(`test`) test: string) {
-    return this.catalogService.getCatalog();
-  }
+  // @Get()
+  // getType(@Query(`test`) test: string) {
+  //   return this.catalogService.getCatalog();
+  // }
   @UseGuards(AuthGuard)
   @Post()
   createProduct(@Body() createProductDto: CreateProductDto, @Req() request: IOrdersRequest ){
@@ -28,13 +28,15 @@ export class CatalogController {
   }
 
   @Get()
-  getProducts(@Body() getProductsDto: GetProductsDto) {
-    const limit = getProductsDto.endIndex - getProductsDto.startIndex + 1;
-    console.log(limit)
-    const products = this.catalogService.getProducts(getProductsDto, limit);
-    console.log("Products in controller:", products); 
-    return products;
+  getProducts(
+    @Query() query: GetProductsQueryParamDto
+  ) {
+
+    console.log(query)
+
+    return this.catalogService.getProducts(query);
   }
+
 
   
 }

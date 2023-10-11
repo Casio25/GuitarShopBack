@@ -1,10 +1,19 @@
-import { IGetProducts } from './../../../utils/interface/ProductInterface';
+
 import { ICreateProduct, IProductAuth } from 'src/utils/interface/ProductInterface';
 import { CreateProductDto } from 'src/logic/Dto/catalog/create-product.dto';
 import { ConsoleLogger, Injectable, Req } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Product } from '@prisma/client';
 
+
+interface IQueryParams {
+    take: number;
+    skip: number;
+    minPrice?: number;
+    maxPrice?: number;
+    type: string[];
+    string: string[];
+}
 
 @Injectable()
 export class CatalogDataService {
@@ -33,13 +42,26 @@ export class CatalogDataService {
         }
     }
 
-    async getProducts(getProductsDto: IGetProducts, limit: number): Promise<any> {
+    async getProducts(where: IQueryParams) {
         try {
             const products = await this.prisma.product.findMany({
-                skip: getProductsDto.startIndex - 1 ,
-                take: limit,
+                skip: +where.skip,
+                take: +where.take,
+                where: {
+                    // price: {
+                    //     gte: where.minPrice, 
+                    //     lte: where.maxPrice, 
+                    // },
+                    
+                    type: {
+                        in: where.type, 
+                    },
+                    string: {
+                        in: where.string,
+                    },
+                },
             });
-            console.log("Products in data service:", products);
+
             return products;
         } catch (error) {
             throw error;

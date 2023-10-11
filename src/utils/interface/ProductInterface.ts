@@ -11,7 +11,3 @@ export interface IProductAuth {
     author: number
 }
 
-export interface IGetProducts {
-    startIndex: number
-    endIndex: number
-}
