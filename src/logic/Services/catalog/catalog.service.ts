@@ -13,10 +13,7 @@ interface IQueryParams {
   skip: number;
   type: string,
   string: string,
-  price?:{
-    minPrice: number
-    maxPrice: number
-  }
+  price?: string
   
 }
 
@@ -64,18 +61,19 @@ export class CatalogService {
 
 
     if (query.price) {
-      if (query.price.minPrice !== undefined) {
-        where.minPrice = query.price.minPrice;
+      const price = JSON.parse(query.price);
+      if (price.minPrice !== undefined) {
+        where.minPrice = price.minPrice;
       }
 
-      if (query.price.maxPrice !== undefined) {
-        where.maxPrice = query.price.maxPrice;
+      if (price.maxPrice !== undefined) {
+        where.maxPrice = price.maxPrice;
       }
     }
 
     try {
-      console.log(where);
       const products = await this.catalogDataService.getProducts(where);
+      console.log(where)
       return products;
     } catch (error) {
       throw error;

@@ -48,10 +48,10 @@ export class CatalogDataService {
                 skip: +where.skip,
                 take: +where.take,
                 where: {
-                    // price: {
-                    //     gte: where.minPrice, 
-                    //     lte: where.maxPrice, 
-                    // },
+                    price: {
+                        gte: where.minPrice, 
+                        lte: where.maxPrice, 
+                    },
                     
                     type: {
                         in: where.type, 
