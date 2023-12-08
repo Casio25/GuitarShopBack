@@ -14,7 +14,8 @@ datasource db {
 
 model User {
   id Int @id @default(autoincrement())
-  name String
+  firstName String
+  secondName String?
   email String
   password String
   phoneNumber String
@@ -70,5 +71,6 @@ model Comment {
 enum Role{
   USER
   ADMIN
+  SUPERAMDIN
 }
 

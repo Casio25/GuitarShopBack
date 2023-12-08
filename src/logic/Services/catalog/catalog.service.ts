@@ -1,9 +1,10 @@
+import { CreateProductDto } from './../../Dto/catalog/create-product.dto';
 
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { Injectable } from '@nestjs/common';
 import { offers } from 'src/data/CatalogData';
-import { ICreateProduct, IProductAuth } from 'src/utils/interface/ProductInterface';
+import { ICreateProduct, IProductAuth, IChangeProduct } from 'src/utils/interface/ProductInterface';
 import { AuthDataService } from 'src/auth/authData.service';
 import { CatalogDataService } from './catalogData.service';
 const fs = require("fs");
@@ -46,11 +47,14 @@ export class CatalogService {
     }
   }
 
-  async getProducts(query: IQueryParams) {
+  async getProducts(query: IQueryParams, request) {
     const where: any = {
       skip: query.skip,
       take: query.take,
     };
+    if (request.user !== undefined && request.user.role === "ADMIN"){
+      where.authorId = request.user.id
+    }
     if (query.type) {
       where.type = query.type.split(',');
     }
@@ -78,6 +82,19 @@ export class CatalogService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async changeProduct(changeProductDto: IChangeProduct, user){
+
+    try{
+      if (user.role === "ADMIN" && user.id === changeProductDto.authorId){
+        const changedProduct = await this. catalogDataService.changeProduct(changeProductDto)
+      }
+    }catch (error) {
+      throw error;
+      
+    }
+
   }
 
 }
