@@ -24,4 +24,8 @@ export class AuthController {
   getProfile(@Request() req) {
     return req.user;
   }
+  @Post("verify")
+  verifyEmail(@Body() verifyAuthDto: VerifyAuthDto){
+    return this.authService.verify(verifyAuthDto)
+  }
 }

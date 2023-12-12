@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
 export interface ICreateAuth {
-    name: string;
+    firstName: string;
+    secondName: string;
     email: string;
     password: string;
-    phoneNumber: string;
 }
 export interface ISignAuth {
     email: string;

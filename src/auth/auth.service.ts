@@ -54,7 +54,8 @@ export class AuthService {
         from: 'mishakolomietsus@gmail.com',
         to: email,
         subject: 'Order Confirmation',
-        text: `you succesfully registered witn your ${email} email address`,
+        text: `you succesfully registered witn your ${email} email address \n
+        open this link to finish your registration`,
       };
 
       transporter.sendMail(mailOptions, (error, info) => {

@@ -18,7 +18,8 @@ model User {
   secondName String?
   email String
   password String
-  phoneNumber String
+  phoneNumber String?
+  isEmailConfirmed Boolean @default(false)
   role Role @default(USER)
   Orders Order[]
   Products Product[]

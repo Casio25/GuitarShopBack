@@ -34,10 +34,10 @@ export class AuthDataService {
             // If no existing user found, create a new user
             const newUser = await this.prisma.user.create({
                 data: {
-                    name: userData.name,
+                    firstName: userData.firstName,
+                    secondName: userData.secondName,
                     email: userData.email,
                     password: userData.password,
-                    phoneNumber: userData.phoneNumber,
                 },
             });
 

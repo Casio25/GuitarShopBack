@@ -1,7 +1,8 @@
 /* eslint-disable prettier/prettier */
 export interface IUser {
     id: number;
-    name: string;
+    firstName: string;
+    secondName: string;
     email: string;
     password: string;
     phoneNumber: string;
