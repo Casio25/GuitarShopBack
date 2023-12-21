@@ -1,10 +1,22 @@
+import { IsNotEmpty } from '@nestjs/class-validator';
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { User, Order } from '@prisma/client';
+import { User, Order, Role } from '@prisma/client';
 import { ICreateAuth } from './../utils/interface/authInterface';
 import { IUser } from 'src/utils/interface/IUser';
 
+
+interface IUpdateData {
+    id: number;
+    email: string;
+    password: string;
+    firstName: string;
+    secondName: string;
+    phoneNumber: string;
+    role: Role;
+    isEmailConfirmed: boolean;
+}
 
 @Injectable()
 export class AuthDataService {
@@ -13,23 +25,23 @@ export class AuthDataService {
     
     // Check if user with the same email already exists
 
-    async findUser(email: string): Promise<User> {
+    async findUser(email: string): Promise<User | null> {
         try {
-            console.log(email)
-            return await this.prisma.user.findFirst({
+            const user =  await this.prisma.user.findFirst({
                 where: {
                     email: email
                 },
             });
+            return user || null
         }
-        catch {
-            throw new Error( "user not found");
+        catch (error){
+            console.error("Error finding user: ", error)
+            throw new Error(error);
         }
     }
 
     async createUser(userData: ICreateAuth): Promise<User> {
-        try {
-            
+        try {            
 
             // If no existing user found, create a new user
             const newUser = await this.prisma.user.create({
@@ -41,6 +53,12 @@ export class AuthDataService {
                 },
             });
 
+
+            if (!newUser || newUser.id == null) {
+                // Handle the case where user creation failed
+                throw new Error('User not created');
+            }
+
             return newUser;
         } catch (error) {
             console.error('Error creating user:', error);
@@ -49,10 +67,41 @@ export class AuthDataService {
         }
     }
 
+    async update(user :IUpdateData, where?: IUpdateData): Promise<User | null> {
+        console.log(where)
+        try {
+            const updatedUser = await this.prisma.user.update({
+                where:{
+                    id: user.id
+                },
+                data: {
+                    isEmailConfirmed: true,
+                    firstName: where.firstName,
+                    secondName: where.secondName,
+                    password: where.password,
+                    role: where.role,
+                    phoneNumber: where.phoneNumber
 
-    async Test() {
-        console.log('testing authDataService');
+
+                }
+            });
+
+
+            if (!updatedUser || updatedUser.email == null) {
+                // Handle the case where user creation failed
+                throw new Error('User not verified');
+            }
+
+            return updatedUser;
+        } catch (error) {
+            console.error('Error verifing user:', error);
+            throw new Error('User not veriofied');
+
+        }
     }
+
+
+    
 
    
 }
