@@ -7,9 +7,9 @@ import { ICreateOrder } from "../../../utils/interface/orderInterface"
 import { IMailOption } from "../../../utils/interface/mailInterface"
 import { IGetOrder } from 'src/utils/interface/IGetOrder';
 // import { createOrder } from './order.data-service';
-import { OrderDataService } from './orderData.service';
-import { AuthDataService } from 'src/auth/authData.service';
-import { AuthService } from 'src/auth/auth.service';
+import { OrderDataService } from '../../DataServices/orderData.service';
+import { AuthDataService } from 'src/logic/DataServices/authData.service';
+import { AuthService } from 'src/logic/Services/auth/auth.service';
 import * as fs from 'fs';
 
 

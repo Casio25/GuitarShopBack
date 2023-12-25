@@ -1,11 +1,11 @@
-import { SignInAuthDto } from './dto/signin-auth.dto';
+import { SignInAuthDto } from '../../Dto/auth/signin-auth.dto';
 /* eslint-disable prettier/prettier */
 import { Controller, Get, Post, Body, HttpCode, HttpStatus, Request, UseGuards, Patch } from '@nestjs/common';
-import { AuthGuard } from './auth.guard';
-import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { ForgotPasswordDto } from './dto/ForgotPassword.dto';
+import { AuthGuard } from '../../../auth/auth.guard';
+import { AuthService } from '../../Services/auth/auth.service';
+import { CreateAuthDto } from '../../Dto/auth/create-auth.dto';
+import { UpdateAuthDto } from '../../Dto/auth/update-auth.dto';
+import { ForgotPasswordDto } from '../../Dto/auth/ForgotPassword.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -17,8 +17,10 @@ export class AuthController {
   }
   @HttpCode(HttpStatus.OK)
    @Post("signin")
-   signIn(@Body() signInAuthDto: SignInAuthDto) {
-   return this.authService.signIn(signInAuthDto);
+   async signIn(@Body() signInAuthDto: SignInAuthDto) {
+   const response = await this.authService.signIn(signInAuthDto);
+   console.log("response: ", response)
+   return response
    }
 
    @Post("resend_email")
@@ -47,7 +49,7 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
-    return req.user;
+    return req;
   }
   // @Post("verify")
   // verifyEmail(@Body() verifyAuthDto: VerifyAuthDto){

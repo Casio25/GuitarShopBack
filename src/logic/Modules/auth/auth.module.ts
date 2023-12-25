@@ -1,11 +1,11 @@
-import { AuthDataService } from './authData.service';
+import { AuthDataService } from '../../DataServices/authData.service';
 /* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { AuthService } from '../../Services/auth/auth.service';
+import { AuthController } from '../../Controllers/auth/auth.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
+import { jwtConstants } from '../../../auth/constants';
 
 
 @Module({

@@ -3,9 +3,9 @@
 import { ConsoleLogger, Injectable, Req } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Order, User } from '@prisma/client';
-import { ICreateOrder } from '../../../utils/interface/orderInterface'; 
+import { ICreateOrder } from '../../utils/interface/orderInterface'; 
 import { IRequest } from 'src/utils/interface/requestInterface';
-import { AuthDataService } from 'src/auth/authData.service';
+import { AuthDataService } from 'src/logic/DataServices/authData.service';
 import { IUser } from 'src/utils/interface/userInterface';
 import { IGetOrder } from 'src/utils/interface/IGetOrder';
 @Injectable()

@@ -1,18 +1,18 @@
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { ForgotPasswordDto } from './dto/ForgotPassword.dto';
-import { AuthDataService } from './authData.service';
+import { UpdateAuthDto } from '../../Dto/auth/update-auth.dto';
+import { ForgotPasswordDto } from '../../Dto/auth/ForgotPassword.dto';
+import { AuthDataService } from '../../DataServices/authData.service';
 /* eslint-disable prettier/prettier */
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ICreateAuth, ISignAuth } from './../utils/interface/authInterface';
+import { ICreateAuth, ISignAuth } from '../../../utils/interface/authInterface';
 import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { SignInAuthDto } from './dto/signin-auth.dto';
+import { CreateAuthDto } from '../../Dto/auth/create-auth.dto';
+import { SignInAuthDto } from '../../Dto/auth/signin-auth.dto';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from 'src/utils/interface/jwtpayloadInterface';
 import { Order, User } from '@prisma/client';
 import * as nodemailer from 'nodemailer';
-import { IMailOption } from "../utils/interface/mailInterface";
+import { IMailOption } from "../../../utils/interface/mailInterface";
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/utils/interface/IUser';
 import { IForgotPassword } from 'src/utils/interface/IForgotPassword';
@@ -152,6 +152,7 @@ export class AuthService {
 
 
   async update(req: any, updateAuthDto: UpdateAuthDto) {
+    console.log(updateAuthDto)
     const allowedFields = ['email', 'firstName', 'secondName', 'isEmailConfirmed', 'password', 'phoneNumber', 'role'];
     const where: any = {};
 

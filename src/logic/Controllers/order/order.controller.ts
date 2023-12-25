@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { GetOrderDto } from './../../../auth/dto/getOrderDto';
+import { GetOrderDto } from '../../Dto/order/getOrderDto';
 import { OrderService } from './../../Services/order/order.service';
 import { Body, Controller, Post, Get, Param, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
 import { CreateOrderDto } from 'src/logic/Dto/order/create-order.dto';

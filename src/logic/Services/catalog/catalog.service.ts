@@ -5,8 +5,8 @@ import { CreateProductDto } from './../../Dto/catalog/create-product.dto';
 import { Injectable } from '@nestjs/common';
 import { offers } from 'src/data/CatalogData';
 import { ICreateProduct, IProductAuth, IChangeProduct } from 'src/utils/interface/ProductInterface';
-import { AuthDataService } from 'src/auth/authData.service';
-import { CatalogDataService } from './catalogData.service';
+import { AuthDataService } from 'src/logic/DataServices/authData.service';
+import { CatalogDataService } from '../../DataServices/catalogData.service';
 const fs = require("fs");
 const catalogData = fs.readFileSync('catalog.txt', 'utf-8');
 interface IQueryParams {
