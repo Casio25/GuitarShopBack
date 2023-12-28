@@ -17,10 +17,8 @@ export class AuthController {
   }
   @HttpCode(HttpStatus.OK)
    @Post("signin")
-   async signIn(@Body() signInAuthDto: SignInAuthDto) {
-   const response = await this.authService.signIn(signInAuthDto);
-   console.log("response: ", response)
-   return response
+   signIn(@Body() signInAuthDto: SignInAuthDto) {
+   return this.authService.signIn(signInAuthDto);
    }
 
    @Post("resend_email")

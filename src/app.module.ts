@@ -7,10 +7,10 @@ import { OrderModule } from './logic/Modules/order/order.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './logic/Modules/auth/auth.module';
 import { AuthGuard, CustomAuthGuard } from './auth/auth.guard';
-
+import { UserModule } from './logic/Modules/user/user.module';
 
 @Module({
-  imports: [CatalogModule, OrderModule, PrismaModule, AuthModule],
+  imports: [CatalogModule, OrderModule, PrismaModule, AuthModule, UserModule],
   controllers: [AppController],
   providers: [AppService, AuthGuard, CustomAuthGuard],
 })

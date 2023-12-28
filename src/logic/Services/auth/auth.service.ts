@@ -118,9 +118,7 @@ export class AuthService {
     const payload = { id: user.id, email: user.email, role: user.role };
 
     return {
-      access_token: await this.jwtService.signAsync(payload),
-      user: await this.authDataService.findUser(signInAuthDto.email),
-      test: "test"
+      access_token: await this.jwtService.signAsync(payload)
     };
   }catch(error){
       console.error('Error logging in:', error.message);

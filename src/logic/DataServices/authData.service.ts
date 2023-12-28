@@ -22,7 +22,6 @@ interface IUpdateData {
 export class AuthDataService {
     constructor(private prisma: PrismaService) { }
 
-    
     // Check if user with the same email already exists
 
     async findUser(email: string): Promise<User | null> {
