@@ -67,7 +67,7 @@ export class AuthDataService {
     }
 
     async update(user :IUpdateData, where?: IUpdateData): Promise<User | null> {
-        console.log(where)
+        console.log("where: ", where)
         try {
             const updatedUser = await this.prisma.user.update({
                 where:{

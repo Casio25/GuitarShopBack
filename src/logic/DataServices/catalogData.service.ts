@@ -46,8 +46,8 @@ export class CatalogDataService {
     async getProducts(where: IQueryParams) {
         try {
             const products = await this.prisma.product.findMany({
-                skip: +where.skip,
-                take: +where.take,
+                // skip: +where.skip,
+                // take: +where.take,
                 where: {
                     price: {
                         gte: where.minPrice, 

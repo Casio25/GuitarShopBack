@@ -2,21 +2,23 @@ import { CreateProductDto } from './../../Dto/catalog/create-product.dto';
 
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { Injectable } from '@nestjs/common';
+import { Injectable, Res } from '@nestjs/common';
 import { offers } from 'src/data/CatalogData';
 import { ICreateProduct, IProductAuth, IChangeProduct } from 'src/utils/interface/ProductInterface';
 import { AuthDataService } from 'src/logic/DataServices/authData.service';
 import { CatalogDataService } from '../../DataServices/catalogData.service';
+import { Response } from 'express';
+import * as ExcelJS from 'exceljs';
 const fs = require("fs");
 const catalogData = fs.readFileSync('catalog.txt', 'utf-8');
 interface IQueryParams {
-  take: number;
-  skip: number;
+  
   type: string,
   string: string,
   price?: string
   
 }
+
 
 @Injectable()
 export class CatalogService {
@@ -47,10 +49,11 @@ export class CatalogService {
     }
   }
 
-  async getProducts(query: IQueryParams, request) {
+  
+
+  async getProducts(query: IQueryParams, request, @Res() response: Response) {
     const where: any = {
-      skip: query.skip,
-      take: query.take,
+
     };
     if (request.user !== undefined && request.user.role === "ADMIN"){
       where.authorId = request.user.id
@@ -77,8 +80,22 @@ export class CatalogService {
 
     try {
       const products = await this.catalogDataService.getProducts(where);
-      console.log(where)
-      return products;
+
+      // Create a new workbook and add a worksheet
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Products');
+
+      // Add headers to the worksheet
+      const headers = ['Product Name', "AuthorId", 'Price', 'Type', 'String', 'Rating' /* Add more fields as needed */];
+      sheet.addRow(headers);
+
+      // Add data to the worksheet
+      products.forEach(product => {
+        sheet.addRow([product.productName, product.authorId, product.price, product.type, product.string, product.rating /* Add more fields as needed */]);
+      });
+
+      // Return the Excel file as a Buffer
+      return workbook.xlsx.writeBuffer()
     } catch (error) {
       throw error;
     }

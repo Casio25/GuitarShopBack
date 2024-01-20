@@ -179,13 +179,18 @@ export class AuthService {
   async verify(req: any) {
     try {
       const user = await this.authDataService.findUser(req.email);
+      console.log(user)
 
       if (!user) {
         throw new Error("User doesn't exist");
       }
 
+      const where: any = {
+        isEmailConfirmed: true
+      }
+
       // Assuming you have an update method in authDataService
-      await this.authDataService.update(user);
+      await this.authDataService.update(user, where);
 
       // You may return some response here if needed
     } catch (error) {

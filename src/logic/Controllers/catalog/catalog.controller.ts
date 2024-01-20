@@ -1,13 +1,15 @@
 import { IOrdersRequest } from 'src/utils/interface/requestInterface';
 /* eslint-disable prettier/prettier */
 import { CatalogService } from '../../Services/catalog/catalog.service';
-import { Body, Controller, Get, Post, Param, Query, UseGuards, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, Query, UseGuards, Req, Res } from '@nestjs/common';
 import { offers } from '../../../data/CatalogData.js';
 import { CreateProductDto } from 'src/logic/Dto/catalog/create-product.dto';
 import { AuthGuard, CustomAuthGuard } from 'src/auth/auth.guard';
 import { IProductAuth } from 'src/utils/interface/ProductInterface';
 import { GetProductsQueryParamDto } from 'src/logic/Dto/catalog/get-products-query-param.dto';
 import { ChangeProductDto } from 'src/logic/Dto/catalog/change-product.dto';
+import { response } from 'express';
+import { Response } from 'express';
 
 @Controller('catalog')
 export class CatalogController {
@@ -21,22 +23,23 @@ export class CatalogController {
     const email = request.user.email
     return this.catalogService.createProduct(createProductDto, email)
   }
-  @UseGuards(CustomAuthGuard)
+
+  //CustomAuthGuard will get a response even if there is no jwt token
+  @UseGuards(AuthGuard)
   @Get()
   async getProducts(
     @Query() query: GetProductsQueryParamDto,
-    @Req() request: IOrdersRequest
+    @Req() request: IOrdersRequest,
+    @Res() response: Response
   ) {
     const id = request.user;
-    console.log(id)
-    if (id == undefined){
       console.log("id: ", id)
-      return this.catalogService.getProducts(query, request)
-    }
-    else{
-      console.log("id: ", id)
-      return this.catalogService.getProducts(query, request)
-    }
+      const excelBuffer = await this.catalogService.getProducts(query, request, response)
+      response.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      response.setHeader('Content-Disposition', 'attachment; filename=products.xlsx');
+
+      // Send the Excel file as the response
+      response.send(excelBuffer);
   }
   @UseGuards(AuthGuard)
   @Post("change")
