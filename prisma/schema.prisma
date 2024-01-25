@@ -23,6 +23,7 @@ model User {
   role Role @default(USER)
   Orders Order[]
   Products Product[]
+  GuitarProducts GuitarProduct[]
   Comments Comment[]
 
 
@@ -38,8 +39,6 @@ model Order {
   items Item[]
 }
 
-
-
 model Item{
   id Int @id @default(autoincrement())
   itemId Int?
@@ -49,7 +48,7 @@ model Item{
   orderId Int?
 }
 
-model Product {
+model GuitarProduct {
   id Int @id @default(autoincrement())
   author User? @relation(fields: [authorId], references: [id])
   authorId Int
@@ -62,12 +61,32 @@ model Product {
   comments Comment[]
 }
 
+model Category {
+  id Int @id @default(autoincrement())
+  name String
+  Products Product[]
+}
+
+model Product {
+  id Int @id @default(autoincrement())
+  author User? @relation(fields: [authorId], references: [id])
+  authorId Int
+  name String
+  photo String
+  description String?
+  price Int
+  visibility Boolean
+  inStock Boolean
+  categoryId Int
+  category Category @relation(fields: [categoryId], references: [id])
+}
+
 model Comment {
   id Int @id @default(autoincrement())
   comment String
   author User @relation(fields: [authorId], references: [id])
   authorId Int
-  product Product @relation(fields: [productId], references: [id])
+  product GuitarProduct @relation(fields: [productId], references: [id])
   productId Int
 }
 

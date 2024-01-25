@@ -126,6 +126,17 @@ export class AuthService {
   }
   }
 
+  //onetimejwttoken generation
+  async oneTimeToken(req: any){
+    const user = await this.authDataService.findUser(req.email);
+
+    const { password, ...result } = user;
+    const payload = { id: user.id, email: user.email, role: user.role };
+    return {
+      access_token: await this.jwtService.signAsync(payload)
+    };
+  }
+
 
   async forgotPassword(forgotPasswordDto: IForgotPassword): Promise<any> {
     const user = await this.authDataService.findUser(forgotPasswordDto.email);

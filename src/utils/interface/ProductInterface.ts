@@ -1,20 +1,23 @@
 export interface ICreateProduct {
-    productName: string
     authorId: number
-    type: string
+    name: string
     photo: string
+    description: string
     price: number
-    rating: number
-    string: string
+    visibility: boolean
+    inStock: boolean
+    category: string
 }
 export interface IChangeProduct {
-    id: number
-    productName: string
     authorId: number
-    type: string
+    id: number
+    name: string
     photo: string
+    description: string
     price: number
-    string: string
+    visibility: boolean
+    inStock: boolean
+    category: string
 }
 export interface IProductAuth {
     authorId: number

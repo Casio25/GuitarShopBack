@@ -3,7 +3,8 @@ import { ICreateProduct, IProductAuth, IChangeProduct } from 'src/utils/interfac
 import { CreateProductDto } from 'src/logic/Dto/catalog/create-product.dto';
 import { ConsoleLogger, Injectable, Req } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Product } from '@prisma/client';
+import { GuitarProduct } from '@prisma/client';
+import { ICreateCategory } from 'src/utils/interface/categoryInterface';
 
 
 interface IQueryParams {
@@ -23,17 +24,20 @@ export class CatalogDataService {
     async createProduct(
         product: ICreateProduct,
         authorId: number, 
+        categoryId: number
     ): Promise<any> {
         try {
             const newProduct = await this.prisma.product.create({
                 data: {
                     authorId: authorId, 
-                    productName: product.productName,
-                    type: product.type,
+                    name: product.name,
                     photo: product.photo,
                     price: product.price,
-                    rating: product.rating,
-                    string: product.string,
+                    description: product.description,
+                    visibility: product.visibility,
+                    inStock: product.inStock,
+                    categoryId: categoryId
+
                 },
             });
 
@@ -45,7 +49,7 @@ export class CatalogDataService {
 
     async getProducts(where: IQueryParams) {
         try {
-            const products = await this.prisma.product.findMany({
+            const products = await this.prisma.guitarProduct.findMany({
                 // skip: +where.skip,
                 // take: +where.take,
                 where: {
@@ -70,22 +74,52 @@ export class CatalogDataService {
         }
     }
 
-    async changeProduct(product: IChangeProduct){
+    async changeProduct(product: IChangeProduct, categoryId){
         try{
             const changedProduct = await this.prisma.product.update({
                 where: {
                     id: product.id
                 },
                 data: {
-                    productName: product.productName,
-                    type: product.type,
+                    name: product.name,
                     photo: product.photo,
                     price: product.price,
-                    string: product.string,
+                    description: product.description,
+                    visibility: product.visibility,
+                    inStock: product.inStock,
+                    categoryId: categoryId
+
                 }
             })
         } catch (error) {
             throw error;
+        }
+    }
+
+
+    async createCategory(category: ICreateCategory){
+        try {
+            const createCategory = await this.prisma.category.create({
+                data: {
+                    name: category.name
+                }
+            })
+        }catch (error){
+            throw error;
+        }
+    }
+
+    async findCategory(category: string){
+        try {
+            const categoryName = this.prisma.category.findFirst({
+                where: {
+                    name: category
+                }
+            })
+            return categoryName || null
+        } catch (error) {
+            console.error("Error finding category: ", error)
+            throw new Error(error);
         }
     }
 

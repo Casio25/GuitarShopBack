@@ -1,3 +1,4 @@
+import { CatalogDataService } from 'src/logic/DataServices/catalogData.service';
 import { CreateProductDto } from './../../Dto/catalog/create-product.dto';
 
 /* eslint-disable prettier/prettier */
@@ -6,9 +7,9 @@ import { Injectable, Res } from '@nestjs/common';
 import { offers } from 'src/data/CatalogData';
 import { ICreateProduct, IProductAuth, IChangeProduct } from 'src/utils/interface/ProductInterface';
 import { AuthDataService } from 'src/logic/DataServices/authData.service';
-import { CatalogDataService } from '../../DataServices/catalogData.service';
 import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
+import { ICreateCategory } from 'src/utils/interface/categoryInterface';
 const fs = require("fs");
 const catalogData = fs.readFileSync('catalog.txt', 'utf-8');
 interface IQueryParams {
@@ -40,8 +41,8 @@ export class CatalogService {
       console.log(user);
       console.log(typeof(user.id))
 
-
-      const newProduct = await this.catalogDataService.createProduct(createProductDto, user.id);
+      const categoryId = await this.catalogDataService.findCategory(createProductDto.category)
+      const newProduct = await this.catalogDataService.createProduct(createProductDto, user.id, categoryId.id);
       console.log(newProduct)
 
     } catch (error) {
@@ -51,7 +52,7 @@ export class CatalogService {
 
   
 
-  async getProducts(query: IQueryParams, request, @Res() response: Response) {
+  async getProducts(query: IQueryParams, request) {
     const where: any = {
 
     };
@@ -80,22 +81,24 @@ export class CatalogService {
 
     try {
       const products = await this.catalogDataService.getProducts(where);
-
+      console.log("where:", where)
+      console.log("products", products)
       // Create a new workbook and add a worksheet
-      const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet('Products');
+      // const workbook = new ExcelJS.Workbook();
+      // const sheet = workbook.addWorksheet('Products');
 
-      // Add headers to the worksheet
-      const headers = ['Product Name', "AuthorId", 'Price', 'Type', 'String', 'Rating' /* Add more fields as needed */];
-      sheet.addRow(headers);
+      // // Add headers to the worksheet
+      // const headers = ['Product Name', "AuthorId", 'Price', 'Type', 'String', 'Rating' /* Add more fields as needed */];
+      // sheet.addRow(headers);
 
-      // Add data to the worksheet
-      products.forEach(product => {
-        sheet.addRow([product.productName, product.authorId, product.price, product.type, product.string, product.rating /* Add more fields as needed */]);
-      });
+      // // Add data to the worksheet
+      // products.forEach(product => {
+      //   sheet.addRow([product.productName, product.authorId, product.price, product.type, product.string, product.rating /* Add more fields as needed */]);
+      // });
 
-      // Return the Excel file as a Buffer
-      return workbook.xlsx.writeBuffer()
+      // // Return the Excel file as a Buffer
+      // return workbook.xlsx.writeBuffer()
+      return products
     } catch (error) {
       throw error;
     }
@@ -105,7 +108,8 @@ export class CatalogService {
 
     try{
       if (user.role === "ADMIN" && user.id === changeProductDto.authorId){
-        const changedProduct = await this. catalogDataService.changeProduct(changeProductDto)
+        const categoryId = await this.catalogDataService.findCategory(changeProductDto.category)
+        const changedProduct = await this.catalogDataService.changeProduct(changeProductDto, categoryId)
       }
     }catch (error) {
       throw error;
@@ -114,4 +118,30 @@ export class CatalogService {
 
   }
 
+  async createCategory(createCategoryDto: ICreateCategory){
+    try {
+      const existingCategory = await this.catalogDataService.findCategory(createCategoryDto.name);
+
+      if (existingCategory) {
+        return {
+          status: 400,
+          message: 'Category with this name already exists',
+        };
+      }
+
+      const newCategory = await this.catalogDataService.createCategory(createCategoryDto);
+      console.log(newCategory);
+
+      return {
+        status: 201,
+        data: newCategory,
+      };
+    } catch (error) {
+      console.error(error);
+      return {
+        status: 500,
+        message: 'Internal Server Error',
+      };
+    }
+  }
 }
