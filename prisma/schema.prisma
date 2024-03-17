@@ -21,7 +21,7 @@ model User {
   phoneNumber String?
   isEmailConfirmed Boolean @default(false)
   role Role @default(USER)
-  Orders Order[]
+
   Products Product[]
   GuitarProducts GuitarProduct[]
   Comments Comment[]
@@ -29,24 +29,6 @@ model User {
 
 }
 
-model Order {
-  id Int @id @default(autoincrement())
-  user User? @relation(fields: [userId], references: [id])
-  userId Int?
-  date String?
-  status String?
-  totalPrice Int?
-  items Item[]
-}
-
-model Item{
-  id Int @id @default(autoincrement())
-  itemId Int?
-  price Int
-  quantity Int
-  order Order? @relation(fields: [orderId], references: [id])
-  orderId Int?
-}
 
 model GuitarProduct {
   id Int @id @default(autoincrement())
@@ -79,6 +61,7 @@ model Product {
   inStock Boolean
   categoryId Int
   category Category @relation(fields: [categoryId], references: [id])
+  order Int
 }
 
 model Comment {

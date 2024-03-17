@@ -10,7 +10,7 @@ import { SignInAuthDto } from '../../Dto/auth/signin-auth.dto';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from 'src/utils/interface/jwtpayloadInterface';
-import { Order, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import * as nodemailer from 'nodemailer';
 import { IMailOption } from "../../../utils/interface/mailInterface";
 import { JwtService } from '@nestjs/jwt';

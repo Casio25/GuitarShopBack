@@ -2,7 +2,7 @@ import { IsNotEmpty } from '@nestjs/class-validator';
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { User, Order, Role } from '@prisma/client';
+import { User, Role } from '@prisma/client';
 import { ICreateAuth } from '../../utils/interface/authInterface';
 import { IUser } from 'src/utils/interface/IUser';
 

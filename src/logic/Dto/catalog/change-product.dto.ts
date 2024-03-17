@@ -1,6 +1,6 @@
 import { IsString, IsInt, IsNotEmpty, IsBoolean, IsArray } from "@nestjs/class-validator";
 import { IsOptional } from "class-validator";
-export  class ChangeProductDto {
+export class ChangeProductDto {
 
     @IsInt()
     @IsNotEmpty()
@@ -10,16 +10,9 @@ export  class ChangeProductDto {
     @IsString()
     name: string;
 
-    @IsOptional()
+    @IsInt()
+    @IsNotEmpty()
     authorId: number;
-
-    @IsNotEmpty()
-    @IsString()
-    type: string;
-
-    @IsNotEmpty()
-    @IsString()
-    string: string;
 
     @IsInt()
     @IsNotEmpty()
@@ -28,9 +21,13 @@ export  class ChangeProductDto {
     @IsString()
     photo: string;
 
-    @IsString()
+    @IsInt()
     @IsNotEmpty()
-    category: string;
+    categoryId: number;
+
+    @IsInt()
+    @IsNotEmpty()
+    order: number;
 
     @IsString()
     description: string;

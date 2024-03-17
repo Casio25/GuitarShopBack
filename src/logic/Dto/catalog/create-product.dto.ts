@@ -24,9 +24,11 @@ export class CreateProductDto {
     @IsString()
     photo: string;
 
-    @IsString()
+    @IsInt()
     @IsNotEmpty()
-    category: string;
+    categoryId: number;
+
+
 
     @IsString()
     description: string;

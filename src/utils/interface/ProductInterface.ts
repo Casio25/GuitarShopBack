@@ -6,7 +6,7 @@ export interface ICreateProduct {
     price: number
     visibility: boolean
     inStock: boolean
-    category: string
+    categoryId: number
 }
 export interface IChangeProduct {
     authorId: number
@@ -17,9 +17,22 @@ export interface IChangeProduct {
     price: number
     visibility: boolean
     inStock: boolean
-    category: string
+    categoryId: number
+    order: number
 }
+
+export interface IReorderProduct {
+    authorId: number
+    id: number
+    order: number
+    newOrder: number
+}
+
 export interface IProductAuth {
     authorId: number
 }
 
+export interface IDeleteProduct {
+    id: number,
+    authorId: number
+}

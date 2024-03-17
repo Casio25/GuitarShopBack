@@ -1,3 +1,4 @@
+import { ChangeProductDto } from 'src/logic/Dto/catalog/change-product.dto';
 import { CatalogDataService } from 'src/logic/DataServices/catalogData.service';
 import { CreateProductDto } from './../../Dto/catalog/create-product.dto';
 
@@ -5,19 +6,23 @@ import { CreateProductDto } from './../../Dto/catalog/create-product.dto';
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { Injectable, Res } from '@nestjs/common';
 import { offers } from 'src/data/CatalogData';
-import { ICreateProduct, IProductAuth, IChangeProduct } from 'src/utils/interface/ProductInterface';
+import { ICreateProduct, IProductAuth, IChangeProduct, IReorderProduct } from 'src/utils/interface/ProductInterface';
 import { AuthDataService } from 'src/logic/DataServices/authData.service';
 import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
 import { ICreateCategory } from 'src/utils/interface/categoryInterface';
+import { DeleteProductDto } from 'src/logic/Dto/catalog/delete-product.dto';
 const fs = require("fs");
 const catalogData = fs.readFileSync('catalog.txt', 'utf-8');
 interface IQueryParams {
-  
-  type: string,
-  string: string,
-  price?: string
-  
+
+  type?: string,
+  string?: string,
+  price?: string,
+  order?: number,
+  authorId?: number,
+  categoryId?: number
+
 }
 
 
@@ -25,7 +30,7 @@ interface IQueryParams {
 export class CatalogService {
   private catalogOffers = catalogData;
   constructor(private catalogDataService: CatalogDataService,
-    private authDataService: AuthDataService) {}
+    private authDataService: AuthDataService) { }
 
   getCatalog() {
     return this.catalogOffers;
@@ -39,24 +44,23 @@ export class CatalogService {
         throw new Error('User not found');
       }
       console.log(user);
-      console.log(typeof(user.id))
+      console.log(typeof (user.id))
 
-      const categoryId = await this.catalogDataService.findCategory(createProductDto.category)
-      const newProduct = await this.catalogDataService.createProduct(createProductDto, user.id, categoryId.id);
-      console.log(newProduct)
+      const orderId = await this.catalogDataService.findMaxOrder(createProductDto.categoryId, user.id)
+      const newProduct = await this.catalogDataService.createProduct(createProductDto, user.id, orderId);
 
     } catch (error) {
       console.error(error);
     }
   }
 
-  
+
 
   async getProducts(query: IQueryParams, request) {
     const where: any = {
 
     };
-    if (request.user !== undefined && request.user.role === "ADMIN"){
+    if (request.user !== undefined && request.user.role === "ADMIN") {
       where.authorId = request.user.id
     }
     if (query.type) {
@@ -79,10 +83,17 @@ export class CatalogService {
       }
     }
 
+    if (query.order) {
+      where.order = query.order
+    }
+
+    if (query.categoryId) {
+      where.categoryId = query.categoryId
+    }
+
     try {
       const products = await this.catalogDataService.getProducts(where);
-      console.log("where:", where)
-      console.log("products", products)
+
       // Create a new workbook and add a worksheet
       // const workbook = new ExcelJS.Workbook();
       // const sheet = workbook.addWorksheet('Products');
@@ -100,25 +111,68 @@ export class CatalogService {
       // return workbook.xlsx.writeBuffer()
       return products
     } catch (error) {
-      throw error;
+      throw new Error(error)
     }
   }
 
-  async changeProduct(changeProductDto: IChangeProduct, user){
+  async changeProduct(changeProductDto: IChangeProduct, user) {
+    console.log(user.id)
+    console.log(changeProductDto.authorId)
+    try {
+      if (user.role === "ADMIN" && user.id === changeProductDto.authorId) {
 
-    try{
-      if (user.role === "ADMIN" && user.id === changeProductDto.authorId){
-        const categoryId = await this.catalogDataService.findCategory(changeProductDto.category)
-        const changedProduct = await this.catalogDataService.changeProduct(changeProductDto, categoryId)
+        const changedProduct = await this.catalogDataService.changeProduct(changeProductDto)
+        console.log("true")
       }
-    }catch (error) {
-      throw error;
-      
-    }
+    } catch (error) {
+      throw new Error(error)
 
+    }
   }
 
-  async createCategory(createCategoryDto: ICreateCategory){
+  async reorderProduct(reorderProductDto: IReorderProduct, user) {
+    try {
+      if (user.role === "ADMIN" && user.id === reorderProductDto.authorId) {
+        const changedProduct = await this.catalogDataService.reorderProduct(reorderProductDto)
+      }
+    } catch (error) {
+      throw new Error(error)
+
+    }
+  }
+
+  async lowerOrderByOne(changeProductDto: IChangeProduct | IChangeProduct[], user): Promise<void> {
+    try {
+      if (user.role === "ADMIN") {
+        const productsToUpdate = Array.isArray(changeProductDto) ? changeProductDto : [changeProductDto];
+        await this.catalogDataService.lowerOrderByOne(productsToUpdate);
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+
+  async deleteProduct(deleteProductDto: DeleteProductDto, user) {
+    try {
+      if (user.role === "ADMIN" && user.id === deleteProductDto.authorId) {
+        const deletedProduct = await this.catalogDataService.deleteProduct(deleteProductDto)
+      }
+    } catch (error) {
+      throw new Error(error)
+    }
+  }
+
+  async getCategories() {
+    try {
+      const categories = await this.catalogDataService.getCategories()
+      return categories
+    } catch (error) {
+      throw new Error(error)
+    }
+  }
+
+  async createCategory(createCategoryDto: ICreateCategory) {
     try {
       const existingCategory = await this.catalogDataService.findCategory(createCategoryDto.name);
 
