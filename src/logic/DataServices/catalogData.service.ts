@@ -80,9 +80,9 @@ export class CatalogDataService {
 
     async changeProduct(product: IChangeProduct) {
         try {
-            const changedProduct = await this.prisma.product.updateMany({
+            const changedProduct = await this.prisma.product.update({
                 where: {
-                    id: 4
+                    id: product.id
                 },
                 data: {
                     name: product.name,
@@ -102,6 +102,7 @@ export class CatalogDataService {
                 },
             })
             console.log("new product", newProduct)
+            return changedProduct
         } catch (error) {
             throw error;
         }

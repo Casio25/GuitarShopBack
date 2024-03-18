@@ -55,11 +55,19 @@ export class CatalogController {
 
   @UseGuards(AuthGuard)
   @Patch("change")
-  changeProduct(@Body() changeProductDto: ChangeProductDto, @Req() request: IOrdersRequest) {
-    const user = request.user
-    console.log(changeProductDto)
-    return this.catalogService.changeProduct(changeProductDto, user)
+  async changeProduct(@Body() changeProductDto: ChangeProductDto, @Req() request: IOrdersRequest) {
+    const user = request.user;
+    try {
+      const updatedProduct = await this.catalogService.changeProduct(changeProductDto, user);
+      console.log("updated product: ", updatedProduct);
+      return updatedProduct;
+    } catch (error) {
+      // Handle error appropriately
+      console.error("Error updating product: ", error);
+      throw error; // Optionally, rethrow the error
+    }
   }
+
 
   @UseGuards(AuthGuard)
   @Patch('switch_products')

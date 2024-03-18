@@ -116,19 +116,18 @@ export class CatalogService {
   }
 
   async changeProduct(changeProductDto: IChangeProduct, user) {
-    console.log(user.id)
-    console.log(changeProductDto.authorId)
     try {
       if (user.role === "ADMIN" && user.id === changeProductDto.authorId) {
-
-        const changedProduct = await this.catalogDataService.changeProduct(changeProductDto)
-        console.log("true")
+        const changedProduct = await this.catalogDataService.changeProduct(changeProductDto);
+        console.log("Product successfully updated");
+        return changedProduct; // Return the updated product if needed
       }
     } catch (error) {
-      throw new Error(error)
-
+      console.error("Error updating product: ", error);
+      throw error;
     }
   }
+
 
   async reorderProduct(reorderProductDto: IReorderProduct, user) {
     try {
