@@ -1,3 +1,10 @@
 export interface ICreateCategory {
-    name: string
+    name: string,
+    
+}
+
+export interface ICustomCategory {
+    name: string,
+    id: number,
+    userId: number
 }

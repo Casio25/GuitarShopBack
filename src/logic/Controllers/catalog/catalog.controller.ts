@@ -23,18 +23,24 @@ export class CatalogController {
   @Post()
   createProduct(@Body() createProductDto: CreateProductDto, @Req() request: IOrdersRequest) {
     const email = request.user.email
-    return this.catalogService.createProduct(createProductDto, email)
+    const response = this.catalogService.createProduct(createProductDto, email)
+    console.log("creating product", response)
+    return response
+    
   }
 
-
+  @UseGuards(AuthGuard)
   @Post("create_category")
-  createCategory(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.catalogService.createCategory(createCategoryDto)
+  createCategory(@Body() createCategoryDto: CreateCategoryDto, @Req() request: IOrdersRequest) {
+    const user = request.user
+    return this.catalogService.createCategory(createCategoryDto, user)
   }
 
+  @UseGuards(AuthGuard)
   @Get("get_categories")
-  getCategories() {
-    return this.catalogService.getCategories()
+  getCategories(@Req() request: IOrdersRequest) {
+    const user = request.user
+    return this.catalogService.getCategories(user)
   }
 
 
@@ -48,18 +54,17 @@ export class CatalogController {
     @Query() query: GetProductsQueryParamDto,
     @Req() request: IOrdersRequest,
   ) {
-    const id = request.user;
-    console.log("id: ", id)
     return this.catalogService.getProducts(query, request)
   }
 
+  
+
   @UseGuards(AuthGuard)
   @Patch("change")
-  async changeProduct(@Body() changeProductDto: ChangeProductDto, @Req() request: IOrdersRequest) {
+   async changeProduct(@Body() changeProductDto: ChangeProductDto, @Req() request: IOrdersRequest) {
     const user = request.user;
     try {
       const updatedProduct = await this.catalogService.changeProduct(changeProductDto, user);
-      console.log("updated product: ", updatedProduct);
       return updatedProduct;
     } catch (error) {
       // Handle error appropriately
@@ -82,7 +87,7 @@ export class CatalogController {
     const user = request.user;
     const biggerOrderProducts = await this.catalogService.getProducts(deleteProductDto, request);
     console.log("bigger order products: ", biggerOrderProducts);
-    // const changedOrderProducts = await this.catalogService.lowerOrderByOne(biggerOrderProducts, user);
+    const changedOrderProducts = await this.catalogService.lowerOrderByOne(biggerOrderProducts, user);
     return this.catalogService.deleteProduct(deleteProductDto, user);
   }
 }

@@ -12,7 +12,7 @@ export class UserDataService {
                     email: email
                 },
             });
-            console.log(user)
+            
             return user || null
         }
         catch (error) {

@@ -21,9 +21,9 @@ export class ChangeProductDto {
     @IsString()
     photo: string;
 
-    @IsInt()
+    @IsArray() // Change to validate as an array
     @IsNotEmpty()
-    categoryId: number;
+    categories: Category[]; 
 
     @IsInt()
     @IsNotEmpty()
@@ -39,4 +39,17 @@ export class ChangeProductDto {
     @IsBoolean()
     @IsNotEmpty()
     inStock: boolean;
+}
+class Category {
+    @IsNotEmpty()
+    @IsInt()
+    id: number
+
+    @IsNotEmpty()
+    @IsString()
+    name: string
+
+    @IsNotEmpty()
+    @IsString()
+    type: string
 }

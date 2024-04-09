@@ -19,7 +19,7 @@ export class UserService {
     try{
       console.log("email: ", req.email)
       const user = await this.userDataService.findUser(req.email)
-      console.log(user)
+      
       return {
         isEmailConfirmed: user.isEmailConfirmed
       }

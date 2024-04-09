@@ -5,6 +5,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -23,35 +24,58 @@ model User {
   role Role @default(USER)
 
   Products Product[]
-  GuitarProducts GuitarProduct[]
-  Comments Comment[]
+  Categories CategoriesOnUsers[]
+  Venue Venue[]
+}
 
+model Order {
+  id Int @id @default(autoincrement())
+  orderId Int 
+  creatAt DateTime @default(now())
+  status OrderStatus @default(new)
+  payment Payment []
+  venue Venue[]
 
 }
 
-
-model GuitarProduct {
+model Payment {
   id Int @id @default(autoincrement())
-  author User? @relation(fields: [authorId], references: [id])
-  authorId Int
-  productName String
-  type String
-  string String
-  photo String
-  price Int
-  rating Int
-  comments Comment[]
+  type PaymentType 
+  orders Order[]
+}
+
+model Venue {
+  id Int @id @default(autoincrement())
+  name String
+  createdAt DateTime @default(now())
+  users User[]
+  orders Order[]
 }
 
 model Category {
   id Int @id @default(autoincrement())
   name String
+  type Type @default(private)
   Products Product[]
+  Users CategoriesOnUsers[]
 }
+
+model CategoriesOnUsers {
+  id        Int       @id @default(autoincrement())
+  category  Category  @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    Int?
+
+  @@unique([categoryId, userId], name: "UniqueCategoryIdUserId")
+}
+
+
+
 
 model Product {
   id Int @id @default(autoincrement())
-  author User? @relation(fields: [authorId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
   authorId Int
   name String
   photo String
@@ -59,23 +83,31 @@ model Product {
   price Int
   visibility Boolean
   inStock Boolean
-  categoryId Int
-  category Category @relation(fields: [categoryId], references: [id])
+  categories Category[]
   order Int
+
 }
 
-model Comment {
-  id Int @id @default(autoincrement())
-  comment String
-  author User @relation(fields: [authorId], references: [id])
-  authorId Int
-  product GuitarProduct @relation(fields: [productId], references: [id])
-  productId Int
-}
 
-enum Role{
+
+enum Role {
   USER
   ADMIN
-  SUPERAMDIN
+  SUPERADMIN
 }
 
+enum Type {
+  common
+  private
+}
+
+enum OrderStatus {
+  new
+  inProgress
+  finished
+}
+
+enum PaymentType {
+  cash
+  digital
+}

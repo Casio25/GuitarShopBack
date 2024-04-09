@@ -105,7 +105,7 @@ export class AuthService {
     const user = await this.authDataService.findUser(signInAuthDto.email);
     try{
 
-    if (user?.email !== signInAuthDto.email) {
+    if (!user || user?.email !== signInAuthDto.email) {
        throw new Error("User with this email doesn't exist")
     }
 
@@ -190,7 +190,6 @@ export class AuthService {
   async verify(req: any) {
     try {
       const user = await this.authDataService.findUser(req.email);
-      console.log(user)
 
       if (!user) {
         throw new Error("User doesn't exist");

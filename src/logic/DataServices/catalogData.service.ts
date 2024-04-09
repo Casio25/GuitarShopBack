@@ -1,13 +1,14 @@
 
-import { ICreateProduct, IProductAuth, IChangeProduct, IDeleteProduct, IReorderProduct } from 'src/utils/interface/ProductInterface';
+import { ICreateProduct, IProductAuth, IChangeProduct, IDeleteProduct, IReorderProduct, Category } from 'src/utils/interface/ProductInterface';
 import { CreateProductDto } from 'src/logic/Dto/catalog/create-product.dto';
 import { ConsoleLogger, Injectable, Req } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { GuitarProduct } from '@prisma/client';
+
 import { ICreateCategory } from 'src/utils/interface/categoryInterface';
 
 
 interface IQueryParams {
+
     take?: number;
     skip?: number;
     authorId: number;
@@ -19,6 +20,7 @@ interface IQueryParams {
     type?: string[];
     string?: string[];
 }
+
 
 @Injectable()
 export class CatalogDataService {
@@ -39,7 +41,9 @@ export class CatalogDataService {
                     description: product.description,
                     visibility: product.visibility,
                     inStock: product.inStock,
-                    categoryId: product.categoryId,
+                    categories: {
+                        connect: product.categories.map(category => ({ id: category.id })) // Connect the product to the specified categories
+                    },
                     order: orderId + 1
 
                 },
@@ -53,23 +57,34 @@ export class CatalogDataService {
 
     async getProducts(where: IQueryParams) {
         try {
+            const whereCondition: any = {
+                authorId: where.authorId,
+                
+            };
+            
+            // Check if categoryId is defined before adding it to the where condition
+            if (where.categoryId !== undefined) {
+                whereCondition.categories = {
+                    some: {
+                        categoryId: {
+                            in: [where.categoryId] // Use where.categoryId if defined
+                        }
+                    }
+                };
+            }
+
+            // Check if order is defined before adding it to the where condition
+            if (where.order !== undefined) {
+                whereCondition.order = {
+                    gte: where.order // Use where.order if defined
+                };
+            }
+
             const products = await this.prisma.product.findMany({
-                // skip: +where.skip,
-                // take: +where.take,
-                where: {
-                    // price: {
-                    //     gte: where.minPrice, 
-                    //     lte: where.maxPrice, 
-                    // },
-                    categoryId: where.categoryId,
-
-                    order: {
-                        gte: where.order
-                    },
-
-
-                    authorId: where.authorId,
-                },
+                where: whereCondition,
+                include: {
+                    categories: true // Include the associated categories
+                }
             });
 
             return products;
@@ -77,6 +92,7 @@ export class CatalogDataService {
             throw error;
         }
     }
+
 
     async changeProduct(product: IChangeProduct) {
         try {
@@ -91,22 +107,20 @@ export class CatalogDataService {
                     description: product.description,
                     visibility: product.visibility,
                     inStock: product.inStock,
-                    categoryId: product.categoryId,
+                    categories: {
+                        set: product.categories.map(category => ({ id: category.id })) // Set the categories for the product
+                    },
                     order: product.order
-
                 }
-            })
-            const newProduct = await this.prisma.product.findFirst({
-                where: {
-                    id: product.id
-                },
-            })
-            console.log("new product", newProduct)
-            return changedProduct
+            });
+
+            return changedProduct;
         } catch (error) {
             throw error;
         }
     }
+
+
 
     async reorderProduct(reorderProductDto: IReorderProduct): Promise<void> {
         try {
@@ -152,7 +166,7 @@ export class CatalogDataService {
                     },
                     data: {
                         order: {
-                            decrement: 1 // Decrement the order by one
+                            decrement: 1 
                         }
                     }
                 });
@@ -175,13 +189,18 @@ export class CatalogDataService {
     }
 
 
-    async createCategory(category: ICreateCategory) {
+    async createCategory(category: ICreateCategory, authorId) {
+        
         try {
             const createCategory = await this.prisma.category.create({
                 data: {
-                    name: category.name
+                    name: category.name,
+                    Users: {
+                        create: {userId: authorId}
+                    }
                 }
             })
+            return createCategory
         } catch (error) {
             throw error;
         }
@@ -189,43 +208,90 @@ export class CatalogDataService {
 
     async findCategory(category: string) {
         try {
-            const categoryName = this.prisma.category.findFirst({
+            const categoryName = await this.prisma.category.findFirst({
                 where: {
                     name: category
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    Users: {
+                        select: {
+                            userId: true
+                        }
+                    }
                 }
-            })
-            return categoryName || null
+            });
+            return categoryName || null;
         } catch (error) {
-            console.error("Error finding category: ", error)
+            console.error("Error finding category: ", error);
             throw new Error(error);
         }
     }
 
-    async getCategories() {
+
+    async getCategories(authorId: number) {
         try {
-            const categories = this.prisma.category.findMany()
-            return categories
+            const categories = await this.prisma.category.findMany({
+                where: {
+                    OR: [
+                        {
+                            Users: {
+                                some: {
+                                    userId: authorId
+                                }
+                            }
+                        },
+                        {
+                            Users: {
+                                none: {}
+                            }
+                        }
+                    ]
+                }
+            });
+            return categories;
         } catch (error) {
-            throw new Error(error)
+            throw new Error(error);
         }
     }
 
-    async findMaxOrder(categoryId: number, authorId: number): Promise<number | null> {
+
+    async findMaxOrder(categories: Category[], authorId: number): Promise<number | null> {
         try {
-            const maxOrder = await this.prisma.product.aggregate({
-                where: {
-                    categoryId: categoryId,
-                    authorId: authorId
-                },
-                _max: {
-                    order: true
+            let maxOrder: number | null = null;
+
+            for (const category of categories) {
+                const result = await this.prisma.product.aggregate({
+                    where: {
+                        categories: {
+                            some: {
+                                id: category.id 
+                            }
+                        },
+                        authorId: authorId
+                    },
+                    _max: {
+                        order: true
+                    }
+                });
+
+                
+                if (result._max.order && (maxOrder === null || result._max.order > maxOrder)) {
+                    maxOrder = result._max.order;
                 }
-            });
-            return maxOrder._max.order || 0;
+            }
+
+            // Return the maximum order
+            return maxOrder || 0;
         } catch (error) {
             console.error('Error finding max order:', error);
             throw error;
         }
     }
+
+
+
+
 
 }

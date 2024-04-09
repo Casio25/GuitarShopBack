@@ -12,6 +12,7 @@ import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
 import { ICreateCategory } from 'src/utils/interface/categoryInterface';
 import { DeleteProductDto } from 'src/logic/Dto/catalog/delete-product.dto';
+
 const fs = require("fs");
 const catalogData = fs.readFileSync('catalog.txt', 'utf-8');
 interface IQueryParams {
@@ -20,9 +21,17 @@ interface IQueryParams {
   string?: string,
   price?: string,
   order?: number,
-  authorId?: number,
   categoryId?: number
 
+}
+interface IWhereParams {
+  authorId: number;
+  type?: string[];
+  string?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  order?: number;
+  categoryId?: number;
 }
 
 
@@ -39,15 +48,17 @@ export class CatalogService {
   async createProduct(createProductDto: ICreateProduct, email: string) {
     try {
       const user = await this.authDataService.findUser(email);
+      console.log ("user who create: ", user)
 
       if (!user) {
         throw new Error('User not found');
       }
-      console.log(user);
-      console.log(typeof (user.id))
+      
+      
 
-      const orderId = await this.catalogDataService.findMaxOrder(createProductDto.categoryId, user.id)
+      const orderId = await this.catalogDataService.findMaxOrder(createProductDto.categories, user.id)
       const newProduct = await this.catalogDataService.createProduct(createProductDto, user.id, orderId);
+      console.log("new produdct", newProduct)
 
     } catch (error) {
       console.error(error);
@@ -118,9 +129,12 @@ export class CatalogService {
   async changeProduct(changeProductDto: IChangeProduct, user) {
     try {
       if (user.role === "ADMIN" && user.id === changeProductDto.authorId) {
-        const changedProduct = await this.catalogDataService.changeProduct(changeProductDto);
         console.log("Product successfully updated");
+        const changedProduct = await this.catalogDataService.changeProduct(changeProductDto);
         return changedProduct; // Return the updated product if needed
+      }
+      else{
+        throw new Error
       }
     } catch (error) {
       console.error("Error updating product: ", error);
@@ -162,28 +176,28 @@ export class CatalogService {
     }
   }
 
-  async getCategories() {
+  async getCategories(user) {
     try {
-      const categories = await this.catalogDataService.getCategories()
+      const categories = await this.catalogDataService.getCategories(user.id)
       return categories
     } catch (error) {
       throw new Error(error)
     }
   }
 
-  async createCategory(createCategoryDto: ICreateCategory) {
+  async createCategory(createCategoryDto: ICreateCategory, user) {
     try {
-      const existingCategory = await this.catalogDataService.findCategory(createCategoryDto.name);
+      const existingCategory= await this.catalogDataService.findCategory(createCategoryDto.name);
 
-      if (existingCategory) {
+      if (existingCategory && existingCategory.Users.find(u => u.userId === user.id)) {
         return {
           status: 400,
           message: 'Category with this name already exists',
         };
       }
 
-      const newCategory = await this.catalogDataService.createCategory(createCategoryDto);
-      console.log(newCategory);
+      const newCategory = await this.catalogDataService.createCategory(createCategoryDto, user.id);
+      
 
       return {
         status: 201,
