@@ -56,6 +56,7 @@ model Category {
   id Int @id @default(autoincrement())
   name String
   type Type @default(private)
+  order Int?
   Products Product[]
   Users CategoriesOnUsers[]
 }
@@ -84,7 +85,6 @@ model Product {
   visibility Boolean
   inStock Boolean
   categories Category[]
-  order Int
 
 }
 

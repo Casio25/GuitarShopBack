@@ -54,8 +54,16 @@ export class CatalogService {
         throw new Error('User not found');
       }
       
-      
 
+      const existingProduct = await this.catalogDataService.findProduct(createProductDto.name)
+      console.log("existing prodcut", existingProduct)
+      if (existingProduct && existingProduct.authorId === user.id){
+        return {
+          status: 400,
+          message: 'Product with this name already exists',
+        };
+      }
+      
       const orderId = await this.catalogDataService.findMaxOrder(createProductDto.categories, user.id)
       const newProduct = await this.catalogDataService.createProduct(createProductDto, user.id, orderId);
       console.log("new produdct", newProduct)

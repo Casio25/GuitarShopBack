@@ -12,6 +12,7 @@ interface IQueryParams {
     take?: number;
     skip?: number;
     authorId: number;
+    name?: string;
     minPrice?: number;
     maxPrice?: number;
     categoryId?: number
@@ -42,9 +43,11 @@ export class CatalogDataService {
                     visibility: product.visibility,
                     inStock: product.inStock,
                     categories: {
-                        connect: product.categories.map(category => ({ id: category.id })) // Connect the product to the specified categories
+                        connect: product.categories.map(category => ({ id: category.id,
+                            order: orderId + 1 })), // Connect the product to the specified categories
+                        
                     },
-                    order: orderId + 1
+                    
 
                 },
             });
@@ -61,6 +64,11 @@ export class CatalogDataService {
                 authorId: where.authorId,
                 
             };
+            if (where.name !== undefined){
+                whereCondition.name = {
+                    name: where.name
+                }
+            }
             
             // Check if categoryId is defined before adding it to the where condition
             if (where.categoryId !== undefined) {
@@ -93,6 +101,8 @@ export class CatalogDataService {
         }
     }
 
+    
+
 
     async changeProduct(product: IChangeProduct) {
         try {
@@ -108,9 +118,10 @@ export class CatalogDataService {
                     visibility: product.visibility,
                     inStock: product.inStock,
                     categories: {
-                        set: product.categories.map(category => ({ id: category.id })) // Set the categories for the product
+                        set: product.categories.map(category => ({ id: category.id,
+                            order: product.order })) // Set the categories for the product
                     },
-                    order: product.order
+                    
                 }
             });
 
@@ -124,57 +135,72 @@ export class CatalogDataService {
 
     async reorderProduct(reorderProductDto: IReorderProduct): Promise<void> {
         try {
-            const [productWithOrderA, productWithOrderB] = await Promise.all([
-                this.prisma.product.findFirst({
-                    where: {
-                        authorId: reorderProductDto.authorId,
-                        order: reorderProductDto.order
-                    }
-                }),
-                this.prisma.product.findFirst({
-                    where: {
-                        authorId: reorderProductDto.authorId,
-                        order: reorderProductDto.newOrder
-                    }
-                })
-            ]);
+            const { categoryId, productId, newOrder } = reorderProductDto;
 
-            // Update the orders
-            await Promise.all([
-                this.prisma.product.update({
-                    where: { id: productWithOrderA.id },
-                    data: { order: reorderProductDto.newOrder }
-                }),
-                this.prisma.product.update({
-                    where: { id: productWithOrderB.id },
-                    data: { order: reorderProductDto.order }
-                })
-            ]);
+            // Fetch the product and its current category
+            const product = await this.prisma.product.findUnique({
+                where: { id: productId },
+                include: { categories: true }
+            });
+
+            if (!product) {
+                throw new Error("Product not found");
+            }
+
+            // Find the category index within the product's categories
+            const categoryIndex = product.categories.findIndex(
+                category => category.id === categoryId
+            );
+
+            if (categoryIndex === -1) {
+                throw new Error("Category not found in product");
+            }
+
+            // Update the order of the product within the category
+            const updatedProductCategories = [...product.categories];
+            updatedProductCategories[categoryIndex] = {
+                ...updatedProductCategories[categoryIndex],
+                order: newOrder
+            };
+
+            // Update the product with the updated categories
+            await this.prisma.product.update({
+                where: { id: productId },
+                data: {
+                    categories: {
+                        set: updatedProductCategories
+                    }
+                }
+            });
         } catch (error) {
             throw error;
         }
     }
+
 
 
 
     async lowerOrderByOne(products: IChangeProduct[]): Promise<void> {
         try {
             await Promise.all(products.map(async (product) => {
-                await this.prisma.product.update({
-                    where: {
-                        id: product.id
-                    },
-                    data: {
-                        order: {
-                            decrement: 1 
+                await Promise.all(product.categories.map(async (category) => {
+                    await this.prisma.category.update({
+                        where: {
+                            id: category.id
+                        },
+                        data: {
+                            order: {
+                                decrement: 1
+                            }
                         }
-                    }
-                });
+                    });
+                }));
             }));
         } catch (error) {
             throw error;
         }
     }
+
 
     async deleteProduct(product: IDeleteProduct) {
         try {
@@ -185,6 +211,25 @@ export class CatalogDataService {
             })
         } catch (error) {
             throw error
+        }
+    }
+
+    async findProduct(product: string) {
+        try {
+            const productName = await this.prisma.product.findFirst({
+                where: {
+                    name: product
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    authorId: true,
+                }
+            });
+            return productName || null;
+        } catch (error) {
+            console.error("Error finding product: ", error);
+            throw new Error(error);
         }
     }
 
@@ -264,31 +309,31 @@ export class CatalogDataService {
             for (const category of categories) {
                 const result = await this.prisma.product.aggregate({
                     where: {
+                        authorId: authorId,
                         categories: {
                             some: {
-                                id: category.id 
-                            }
+                                id: category.id,
+                            },
                         },
-                        authorId: authorId
                     },
-                    _max: {
-                        order: true
-                    }
+                    _max: { order: true },
                 });
 
-                
-                if (result._max.order && (maxOrder === null || result._max.order > maxOrder)) {
-                    maxOrder = result._max.order;
+                const maxOrderInCategory = result?._max?.order;
+                if (maxOrderInCategory !== undefined && (maxOrder === null || maxOrderInCategory > maxOrder)) {
+                    maxOrder = maxOrderInCategory;
                 }
             }
 
-            // Return the maximum order
-            return maxOrder || 0;
+            return maxOrder;
         } catch (error) {
             console.error('Error finding max order:', error);
             throw error;
         }
     }
+
+
+        
 
 
 

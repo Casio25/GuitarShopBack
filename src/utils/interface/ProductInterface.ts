@@ -30,6 +30,7 @@ export interface IChangeProduct {
 export interface IReorderProduct {
     authorId: number
     id: number
+    categoryid: number,
     order: number
     newOrder: number
 }
