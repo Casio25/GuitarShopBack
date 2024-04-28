@@ -20,7 +20,9 @@ export class CreateProductDto {
     @IsNotEmpty()
     categories: Category[]; 
 
-
+    @IsArray() // Change to validate as an array
+    @IsNotEmpty()
+    orders: Order[]; 
 
     @IsString()
     description: string;
@@ -32,6 +34,26 @@ export class CreateProductDto {
     @IsBoolean()
     @IsNotEmpty()
     inStock: boolean;
+
+   
+}
+
+class Order {
+    @IsInt()
+    @IsNotEmpty()
+    id; 
+
+    @IsInt()
+    @IsNotEmpty()
+    order;
+
+    @IsInt()
+    @IsNotEmpty()
+    categoryId;
+
+    @IsInt()
+    @IsNotEmpty()
+    authorId
 }
 
 class Category{
@@ -46,4 +68,5 @@ class Category{
     @IsNotEmpty()
     @IsString()
     type: string
+
 }

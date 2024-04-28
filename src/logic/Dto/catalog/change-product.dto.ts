@@ -25,9 +25,10 @@ export class ChangeProductDto {
     @IsNotEmpty()
     categories: Category[]; 
 
-    @IsInt()
+    @IsArray() 
     @IsNotEmpty()
-    order: number;
+    orders: Order[]; 
+
 
     @IsString()
     description: string;
@@ -52,4 +53,28 @@ class Category {
     @IsNotEmpty()
     @IsString()
     type: string
+
+    
+}
+
+class Order {
+    @IsInt()
+    @IsNotEmpty()
+    id;
+
+    @IsInt()
+    @IsNotEmpty()
+    order;
+
+    @IsNotEmpty()
+    @IsInt()
+    authorId;
+
+    @IsInt()
+    @IsNotEmpty()
+    categoryId;
+
+    @IsInt()
+    @IsNotEmpty()
+    productId
 }

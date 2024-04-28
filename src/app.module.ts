@@ -13,8 +13,8 @@ import { PhotoController } from './logic/Controllers/photo/photo.controller';
 import { PhotoService } from './logic/Services/photo/photo.service';
 
 @Module({
-  imports: [CatalogModule, PrismaModule, AuthModule, UserModule, ConfigModule.forRoot({ cache: true }), FirebaseModule],
-  controllers: [AppController, PhotoController],
-  providers: [AppService, AuthGuard, CustomAuthGuard, PhotoService],
+  imports: [CatalogModule, PrismaModule, AuthModule, UserModule, ConfigModule.forRoot({ cache: true }), ],
+  controllers: [AppController],
+  providers: [AppService, AuthGuard, CustomAuthGuard],
 })
 export class AppModule {}

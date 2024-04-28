@@ -48,30 +48,38 @@ export class CatalogService {
   async createProduct(createProductDto: ICreateProduct, email: string) {
     try {
       const user = await this.authDataService.findUser(email);
-      console.log ("user who create: ", user)
+      console.log("user who create: ", user);
 
       if (!user) {
         throw new Error('User not found');
       }
-      
 
-      const existingProduct = await this.catalogDataService.findProduct(createProductDto.name)
-      console.log("existing prodcut", existingProduct)
-      if (existingProduct && existingProduct.authorId === user.id){
+      const existingProduct = await this.catalogDataService.findProduct(createProductDto.name);
+      console.log("existing product", existingProduct);
+
+      if (existingProduct && existingProduct.authorId === user.id) {
         return {
           status: 400,
           message: 'Product with this name already exists',
         };
+      } else {
+        const newProduct = await this.catalogDataService.createProduct(createProductDto, user.id);
+        console.log("new product", newProduct);
+        return {
+          status: 201,
+          message: 'Product created successfully',
+        };
       }
-      
-      const orderId = await this.catalogDataService.findMaxOrder(createProductDto.categories, user.id)
-      const newProduct = await this.catalogDataService.createProduct(createProductDto, user.id, orderId);
-      console.log("new produdct", newProduct)
 
     } catch (error) {
       console.error(error);
+      return {
+        status: 500,
+        message: 'Error creating user',
+      };
     }
   }
+
 
 
 
@@ -103,11 +111,19 @@ export class CatalogService {
     }
 
     if (query.order) {
-      where.order = query.order
+      where.orders = {
+        some: {
+          order: query.order
+        }
+      };
     }
 
     if (query.categoryId) {
-      where.categoryId = query.categoryId
+      where.categories = {
+        some: {
+          categoryId: query.categoryId
+        }
+      };
     }
 
     try {
@@ -151,27 +167,27 @@ export class CatalogService {
   }
 
 
-  async reorderProduct(reorderProductDto: IReorderProduct, user) {
-    try {
-      if (user.role === "ADMIN" && user.id === reorderProductDto.authorId) {
-        const changedProduct = await this.catalogDataService.reorderProduct(reorderProductDto)
-      }
-    } catch (error) {
-      throw new Error(error)
+  // async reorderProduct(reorderProductDto: IReorderProduct, user) {
+  //   try {
+  //     if (user.role === "ADMIN" && user.id === reorderProductDto.authorId) {
+  //       const changedProduct = await this.catalogDataService.reorderProduct(reorderProductDto)
+  //     }
+  //   } catch (error) {
+  //     throw new Error(error)
 
-    }
-  }
+  //   }
+  // }
 
-  async lowerOrderByOne(changeProductDto: IChangeProduct | IChangeProduct[], user): Promise<void> {
-    try {
-      if (user.role === "ADMIN") {
-        const productsToUpdate = Array.isArray(changeProductDto) ? changeProductDto : [changeProductDto];
-        await this.catalogDataService.lowerOrderByOne(productsToUpdate);
-      }
-    } catch (error) {
-      throw new Error(error);
-    }
-  }
+  // async lowerOrderByOne(changeProductDto: IChangeProduct | IChangeProduct[], user): Promise<void> {
+  //   try {
+  //     if (user.role === "ADMIN") {
+  //       const productsToUpdate = Array.isArray(changeProductDto) ? changeProductDto : [changeProductDto];
+  //       await this.catalogDataService.lowerOrderByOne(productsToUpdate);
+  //     }
+  //   } catch (error) {
+  //     throw new Error(error);
+  //   }
+  // }
 
 
   async deleteProduct(deleteProductDto: DeleteProductDto, user) {
@@ -218,5 +234,10 @@ export class CatalogService {
         message: 'Internal Server Error',
       };
     }
+  }
+
+  async getMaxOrder(categoryId, authorId){
+    const maxOrder = await this.catalogDataService.findMaxOrder(categoryId, authorId)
+    return maxOrder
   }
 }

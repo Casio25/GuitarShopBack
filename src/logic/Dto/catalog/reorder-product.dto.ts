@@ -11,6 +11,10 @@ export class ReorderProductDto {
 
     @IsInt()
     @IsNotEmpty()
+    categoryId: number;
+
+    @IsInt()
+    @IsNotEmpty()
     order: number;
 
     @IsInt()

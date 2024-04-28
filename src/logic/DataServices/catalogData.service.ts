@@ -1,10 +1,12 @@
+import { IGetProducts } from './../../utils/interface/ProductInterface';
 
-import { ICreateProduct, IProductAuth, IChangeProduct, IDeleteProduct, IReorderProduct, Category } from 'src/utils/interface/ProductInterface';
+import { ICreateProduct, IProductAuth, IChangeProduct, IDeleteProduct, IReorderProduct, Category, Order } from 'src/utils/interface/ProductInterface';
 import { CreateProductDto } from 'src/logic/Dto/catalog/create-product.dto';
 import { ConsoleLogger, Injectable, Req } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import { ICreateCategory } from 'src/utils/interface/categoryInterface';
+import { Console } from 'console';
 
 
 interface IQueryParams {
@@ -23,16 +25,15 @@ interface IQueryParams {
 }
 
 
+
+
 @Injectable()
 export class CatalogDataService {
-    constructor(private prisma: PrismaService) { }
-
-    async createProduct(
-        product: ICreateProduct,
-        authorId: number,
-        orderId: number
-    ): Promise<any> {
+    constructor(private prisma: PrismaService) {}
+    async createProduct(product: ICreateProduct, authorId: number): Promise<any> {
         try {
+            // Create the product
+            console.log("product from front", product);
             const newProduct = await this.prisma.product.create({
                 data: {
                     authorId: authorId,
@@ -43,33 +44,79 @@ export class CatalogDataService {
                     visibility: product.visibility,
                     inStock: product.inStock,
                     categories: {
-                        connect: product.categories.map(category => ({ id: category.id,
-                            order: orderId + 1 })), // Connect the product to the specified categories
-                        
+                        connect: product.categories.map(category => ({ id: category.id })),
                     },
-                    
-
                 },
             });
 
+            // Create orders for the product
+            const orders = await Promise.all(product.orders.map(order => {
+                return this.prisma.orderOfProduct.create({
+                    data: {
+                        order: order.order + 1,
+                        categoryId: order.categoryId,
+                        authorId: newProduct.authorId
+                    }
+                });
+            }));
+
+            console.log("Orders created:", orders);
+
+            // Update the product to include the newly created orders
+            await this.prisma.product.update({
+                where: { id: newProduct.id },
+                data: {
+                    orders: {
+                        connect: orders.map(order => ({ id: order.id }))
+                    }
+                }
+            });
+
+            console.log("Product updated with orders.");
+
             return newProduct;
+        } catch (error) {
+            console.error('Error creating product:', error);
+            throw error;
+        }
+    }
+
+
+
+
+
+
+
+
+    async getOrderByProduct(productId: number) {
+        try {
+            // Retrieve orders for the specified product
+            const productOrders = await this.prisma.product.findMany({
+                where: {
+                    id: productId
+                },
+               include:{
+                    orders: true
+               }
+            });
+            return productOrders;
         } catch (error) {
             throw error;
         }
     }
 
-    async getProducts(where: IQueryParams) {
+
+    async getProducts(where: IQueryParams): Promise<any> {
         try {
             const whereCondition: any = {
                 authorId: where.authorId,
-                
             };
-            if (where.name !== undefined){
+            if (where.name !== undefined) {
                 whereCondition.name = {
                     name: where.name
-                }
+                };
             }
-            
+
             // Check if categoryId is defined before adding it to the where condition
             if (where.categoryId !== undefined) {
                 whereCondition.categories = {
@@ -91,9 +138,12 @@ export class CatalogDataService {
             const products = await this.prisma.product.findMany({
                 where: whereCondition,
                 include: {
-                    categories: true // Include the associated categories
+                    categories: true, // Include the associated categories
+                    orders: true
                 }
             });
+
+            
 
             return products;
         } catch (error) {
@@ -101,12 +151,44 @@ export class CatalogDataService {
         }
     }
 
-    
 
+    
 
     async changeProduct(product: IChangeProduct) {
         try {
-            const changedProduct = await this.prisma.product.update({
+            const existingProduct = await this.prisma.product.findUnique({
+                where: {
+                    id: product.id
+                },
+                include: {
+                    categories: true,
+                    orders: true // Include the orders associated with the product
+                }
+            });
+
+            if (!existingProduct) {
+                throw new Error("Product not found");
+            }
+
+            // Extract the IDs of the existing categories
+            const existingCategoryIds = existingProduct.categories.map(category => category.id);
+
+            // Extract the IDs of the new categories
+            const newCategoryIds = product.categories.map(category => category.id);
+
+            // Find the IDs of orders that need to be deleted
+            const ordersToDelete = existingProduct.orders.filter(order => !newCategoryIds.includes(order.categoryId));
+
+            // Delete the orders that are associated with categories no longer present in the product
+            await Promise.all(ordersToDelete.map(order =>
+                this.prisma.orderOfProduct.delete({
+                    where: {
+                        id: order.id
+                    }
+                })
+            ));
+            // Update the product details
+            const updatedProduct = await this.prisma.product.update({
                 where: {
                     id: product.id
                 },
@@ -118,60 +200,31 @@ export class CatalogDataService {
                     visibility: product.visibility,
                     inStock: product.inStock,
                     categories: {
-                        set: product.categories.map(category => ({ id: category.id,
-                            order: product.order })) // Set the categories for the product
+                        set: product.categories.map(category => ({ id: category.id }))
                     },
-                    
-                }
+                },
+
             });
+            const orders = await Promise.all(product.orders.map(order => {
+                return this.prisma.orderOfProduct.create({
+                    data: {
+                        order: order.order + 1,
+                        categoryId: order.categoryId,
+                        authorId: updatedProduct.authorId
+                    }
+                });
+            }));
 
-            return changedProduct;
-        } catch (error) {
-            throw error;
-        }
-    }
-
-
-
-    async reorderProduct(reorderProductDto: IReorderProduct): Promise<void> {
-        try {
-            const { categoryId, productId, newOrder } = reorderProductDto;
-
-            // Fetch the product and its current category
-            const product = await this.prisma.product.findUnique({
-                where: { id: productId },
-                include: { categories: true }
-            });
-
-            if (!product) {
-                throw new Error("Product not found");
-            }
-
-            // Find the category index within the product's categories
-            const categoryIndex = product.categories.findIndex(
-                category => category.id === categoryId
-            );
-
-            if (categoryIndex === -1) {
-                throw new Error("Category not found in product");
-            }
-
-            // Update the order of the product within the category
-            const updatedProductCategories = [...product.categories];
-            updatedProductCategories[categoryIndex] = {
-                ...updatedProductCategories[categoryIndex],
-                order: newOrder
-            };
-
-            // Update the product with the updated categories
             await this.prisma.product.update({
-                where: { id: productId },
+                where: { id: updatedProduct.id },
                 data: {
-                    categories: {
-                        set: updatedProductCategories
+                    orders: {
+                        connect: orders.map(order => ({ id: order.id }))
                     }
                 }
             });
+
+            return  updatedProduct
         } catch (error) {
             throw error;
         }
@@ -180,29 +233,79 @@ export class CatalogDataService {
 
 
 
-    async lowerOrderByOne(products: IChangeProduct[]): Promise<void> {
-        try {
-            await Promise.all(products.map(async (product) => {
-                await Promise.all(product.categories.map(async (category) => {
-                    await this.prisma.category.update({
-                        where: {
-                            id: category.id
-                        },
-                        data: {
-                            order: {
-                                decrement: 1
-                            }
-                        }
-                    });
-                }));
-            }));
-        } catch (error) {
-            throw error;
-        }
-    }
+    // async reorderProduct(reorderProductDto: IReorderProduct): Promise<void> {
+    //     try {
+    //         const { categoryId, id, newOrder } = reorderProductDto;
+
+    //         // Fetch the product and its current category
+    //         const product = await this.prisma.product.findUnique({
+    //             where: { id: id },
+    //             include: { categories: true }
+    //         });
+
+    //         if (!product) {
+    //             throw new Error("Product not found");
+    //         }
+
+    //         // Find the category index within the product's categories
+    //         const categoryIndex = product.categories.findIndex(
+    //             category => category.id === categoryId
+    //         );
+
+    //         if (categoryIndex === -1) {
+    //             throw new Error("Category not found in product");
+    //         }
+
+    //         // Update the order of the product within the category
+    //         const updatedProductCategories = [...product.categories];
+    //         updatedProductCategories[categoryIndex] = {
+    //             ...updatedProductCategories[categoryIndex],
+    //             orders: newOrder
+    //         };
+
+    //         // Update the product with the updated categories
+    //         await this.prisma.product.update({
+    //             where: { id: id },
+    //             data: {
+    //                 categories: {
+    //                     set: updatedProductCategories
+    //                 }
+    //             }
+    //         });
+    //     } catch (error) {
+    //         throw error;
+    //     }
+    // }
+
+
+
+
+    // async lowerOrderByOne(products: IChangeProduct[]): Promise<void> {
+    //     try {
+    //         await Promise.all(products.map(async (product) => {
+    //             await Promise.all(product.categories.map(async (category) => {
+    //                 await this.prisma.orderOfProduct.update({
+    //                     where: {
+    //                         categoryId: category.id,
+    //                         authorId: product.authorId
+    //                     },
+    //                     data: {
+    //                         orders: {
+    //                             order:{ decrement: 1}
+                                
+    //                         }
+    //                     }
+    //                 });
+    //             }));
+    //         }));
+    //     } catch (error) {
+    //         throw error;
+    //     }
+    // }
 
 
     async deleteProduct(product: IDeleteProduct) {
+        console.log("deleted prodcut,", product)
         try {
             const deleteProduct = await this.prisma.product.delete({
                 where: {
@@ -302,35 +405,21 @@ export class CatalogDataService {
     }
 
 
-    async findMaxOrder(categories: Category[], authorId: number): Promise<number | null> {
+    async findMaxOrder(categoryId: number, authorId: number): Promise<number | null> {
         try {
-            let maxOrder: number | null = null;
+            const maxOrderProduct = await this.prisma.orderOfProduct.findFirst({
+                where: { categoryId: categoryId,
+                authorId: authorId },
+                orderBy: { order: 'desc' },
+            });
 
-            for (const category of categories) {
-                const result = await this.prisma.product.aggregate({
-                    where: {
-                        authorId: authorId,
-                        categories: {
-                            some: {
-                                id: category.id,
-                            },
-                        },
-                    },
-                    _max: { order: true },
-                });
-
-                const maxOrderInCategory = result?._max?.order;
-                if (maxOrderInCategory !== undefined && (maxOrder === null || maxOrderInCategory > maxOrder)) {
-                    maxOrder = maxOrderInCategory;
-                }
-            }
-
-            return maxOrder;
+            return maxOrderProduct ? maxOrderProduct.order : 0;
         } catch (error) {
             console.error('Error finding max order:', error);
             throw error;
         }
     }
+
 
 
         

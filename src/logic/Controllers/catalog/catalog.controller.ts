@@ -11,6 +11,7 @@ import { ChangeProductDto } from 'src/logic/Dto/catalog/change-product.dto';
 import { CreateCategoryDto } from 'src/logic/Dto/catalog/create-category.dts';
 import { DeleteProductDto } from 'src/logic/Dto/catalog/delete-product.dto';
 import { ReorderProductDto } from 'src/logic/Dto/catalog/reorder-product.dto';
+import { GetMaxOrderDto } from 'src/logic/Dto/catalog/get-max-order.dto';
 
 
 @Controller('catalog')
@@ -41,6 +42,14 @@ export class CatalogController {
   getCategories(@Req() request: IOrdersRequest) {
     const user = request.user
     return this.catalogService.getCategories(user)
+  }
+
+  @UseGuards(AuthGuard)
+  @Post("get_max_order")
+  getMaxOrder(@Body() getMaxOrder: GetMaxOrderDto, @Req() request: IOrdersRequest) {
+    const user = request.user
+    const categoryId = getMaxOrder.categoryId
+    return this.catalogService.getMaxOrder(categoryId, user.id)
   }
 
 
@@ -74,21 +83,22 @@ export class CatalogController {
   }
 
 
-  @UseGuards(AuthGuard)
-  @Patch('switch_products')
-  reorderProduct(@Body() reorderProductDto: ReorderProductDto, @Req() request: IOrdersRequest) {
-    const user = request.user
-    return this.catalogService.reorderProduct(reorderProductDto, user)
-  }
+  // @UseGuards(AuthGuard)
+  // @Patch('switch_products')
+  // reorderProduct(@Body() reorderProductDto: ReorderProductDto, @Req() request: IOrdersRequest) {
+  //   const user = request.user
+  //   return this.catalogService.reorderProduct(reorderProductDto, user)
+  // }
 
   @UseGuards(AuthGuard)
   @Delete("delete")
   async deleteProduct(@Body() deleteProductDto: DeleteProductDto, @Req() request: IOrdersRequest): Promise<any> {
+    console.log("deleteed product", deleteProductDto)
     const user = request.user;
     const biggerOrderProducts = await this.catalogService.getProducts(deleteProductDto, request);
     console.log("bigger order products: ", biggerOrderProducts);
-    const changedOrderProducts = await this.catalogService.lowerOrderByOne(biggerOrderProducts, user);
+    // const changedOrderProducts = await this.catalogService.lowerOrderByOne(biggerOrderProducts, user);
     return this.catalogService.deleteProduct(deleteProductDto, user);
   }
-}
+ }
 

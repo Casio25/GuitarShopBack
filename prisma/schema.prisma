@@ -4,7 +4,7 @@
 //npx prisma migrate dev --name added_user
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["relationJoins"]
 }
 
@@ -14,81 +14,89 @@ datasource db {
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  firstName String
-  secondName String?
-  email String
-  password String
-  phoneNumber String?
+  id               Int     @id @default(autoincrement())
+  firstName        String
+  secondName       String?
+  email            String
+  password         String
+  phoneNumber      String?
   isEmailConfirmed Boolean @default(false)
-  role Role @default(USER)
+  role             Role    @default(USER)
 
-  Products Product[]
+  Products   Product[]
   Categories CategoriesOnUsers[]
-  Venue Venue[]
+  Venue      Venue[]
+  OrdersOfProducts OrderOfProduct[]
+
 }
 
 model Order {
-  id Int @id @default(autoincrement())
-  orderId Int 
-  creatAt DateTime @default(now())
-  status OrderStatus @default(new)
-  payment Payment []
-  venue Venue[]
-
+  id      Int         @id @default(autoincrement())
+  orderId Int
+  creatAt DateTime    @default(now())
+  status  OrderStatus @default(new)
+  payment Payment[]
+  venue   Venue[]
 }
 
 model Payment {
-  id Int @id @default(autoincrement())
-  type PaymentType 
+  id     Int         @id @default(autoincrement())
+  type   PaymentType
   orders Order[]
 }
 
 model Venue {
-  id Int @id @default(autoincrement())
-  name String
+  id        Int      @id @default(autoincrement())
+  name      String
   createdAt DateTime @default(now())
-  users User[]
-  orders Order[]
+  users     User[]
+  orders    Order[]
 }
 
 model Category {
-  id Int @id @default(autoincrement())
-  name String
-  type Type @default(private)
-  order Int?
+  id       Int                 @id @default(autoincrement())
+  name     String
+  type     Type                @default(private)
   Products Product[]
-  Users CategoriesOnUsers[]
+  Users    CategoriesOnUsers[]
+  Orders   OrderOfProduct[]
 }
 
 model CategoriesOnUsers {
-  id        Int       @id @default(autoincrement())
-  category  Category  @relation(fields: [categoryId], references: [id])
+  id         Int      @id @default(autoincrement())
+  category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
-  user      User?     @relation(fields: [userId], references: [id])
-  userId    Int?
+  user       User?    @relation(fields: [userId], references: [id])
+  userId     Int?
 
   @@unique([categoryId, userId], name: "UniqueCategoryIdUserId")
 }
 
+model OrderOfProduct {
+  id         Int      @id @default(autoincrement())
+  order      Int
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  author     User @relation(fields: [authorId], references: [id])
+  authorId   Int
+  product Product[]
 
-
-
-model Product {
-  id Int @id @default(autoincrement())
-  author User @relation(fields: [authorId], references: [id])
-  authorId Int
-  name String
-  photo String
-  description String?
-  price Int
-  visibility Boolean
-  inStock Boolean
-  categories Category[]
-
+  @@unique([order, categoryId])
 }
 
-
+model Product {
+  id          Int              @id @default(autoincrement())
+  author      User             @relation(fields: [authorId], references: [id])
+  authorId    Int
+  name        String
+  photo       String
+  description String?
+  price       Int
+  visibility  Boolean
+  inStock     Boolean
+  categories  Category[]
+  orders      OrderOfProduct[] // One product can have multiple orders across different categories
+}
 
 enum Role {
   USER
