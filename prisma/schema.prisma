@@ -21,20 +21,42 @@ model User {
   password         String
   phoneNumber      String?
   isEmailConfirmed Boolean @default(false)
-  role             Role    @default(USER)
+  roleId           Int
+  role             Role     @relation(fields: [roleId], references: [id])
 
   Products   Product[]
   Categories CategoriesOnUsers[]
   Venue      Venue[]
   OrdersOfProducts OrderOfProduct[]
-
+  Order Order[]
+  
 }
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?
+  permissions Permission[]
+  users       User[]
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  action      String   // e.g., "read", "write", "delete"
+  resource    String   // e.g., "Product", "Order"
+  description String?
+  roleId      Int
+  role        Role     @relation(fields: [roleId], references: [id])
+}
+
 
 model Order {
   id      Int         @id @default(autoincrement())
   orderId Int
   creatAt DateTime    @default(now())
   status  OrderStatus @default(new)
+  author     User @relation(fields: [authorId], references: [id])
+  authorId Int
+  totalPrice Int
   payment Payment[]
   venue   Venue[]
 }
@@ -42,6 +64,7 @@ model Order {
 model Payment {
   id     Int         @id @default(autoincrement())
   type   PaymentType
+  status PaymentStatus @default(Unpaid)
   orders Order[]
 }
 
@@ -57,14 +80,15 @@ model Category {
   id       Int                 @id @default(autoincrement())
   name     String
   type     Type                @default(private)
-  Products Product[]
-  Users    CategoriesOnUsers[]
-  Orders   OrderOfProduct[]
+  Products Product[]           
+  Users    CategoriesOnUsers[] 
+  Orders   OrderOfProduct[]    
 }
+
 
 model CategoriesOnUsers {
   id         Int      @id @default(autoincrement())
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId Int
   user       User?    @relation(fields: [userId], references: [id])
   userId     Int?
@@ -75,13 +99,13 @@ model CategoriesOnUsers {
 model OrderOfProduct {
   id         Int      @id @default(autoincrement())
   order      Int
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId Int
   author     User @relation(fields: [authorId], references: [id])
   authorId   Int
   product Product[]
 
-  @@unique([order, categoryId])
+  @@unique([id, categoryId])
 }
 
 model Product {
@@ -98,11 +122,7 @@ model Product {
   orders      OrderOfProduct[] // One product can have multiple orders across different categories
 }
 
-enum Role {
-  USER
-  ADMIN
-  SUPERADMIN
-}
+
 
 enum Type {
   common
@@ -118,4 +138,9 @@ enum OrderStatus {
 enum PaymentType {
   cash
   digital
+}
+
+enum PaymentStatus {
+  Paid
+  Unpaid
 }

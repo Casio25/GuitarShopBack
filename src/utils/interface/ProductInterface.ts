@@ -35,6 +35,8 @@ export interface IGetProducts {
     inStock: boolean
     categories: Category[]
     order: Order[]
+    type: string
+    string: string
 }
 
 export interface Order{

@@ -6,23 +6,21 @@ import { CreateProductDto } from './../../Dto/catalog/create-product.dto';
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { Injectable, Res } from '@nestjs/common';
 import { offers } from 'src/data/CatalogData';
-import { ICreateProduct, IProductAuth, IChangeProduct, IReorderProduct } from 'src/utils/interface/ProductInterface';
+import { ICreateProduct, IProductAuth, IChangeProduct, IReorderProduct, IGetProducts } from 'src/utils/interface/ProductInterface';
 import { AuthDataService } from 'src/logic/DataServices/authData.service';
 import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
-import { ICreateCategory } from 'src/utils/interface/categoryInterface';
+import { ICreateCategory, IDeleteCategory } from 'src/utils/interface/categoryInterface';
 import { DeleteProductDto } from 'src/logic/Dto/catalog/delete-product.dto';
 
 const fs = require("fs");
 const catalogData = fs.readFileSync('catalog.txt', 'utf-8');
 interface IQueryParams {
-
   type?: string,
   string?: string,
   price?: string,
-  order?: number,
-  categoryId?: number
-
+  categories: Category[]
+  orders: Order[]
 }
 interface IWhereParams {
   authorId: number;
@@ -32,6 +30,18 @@ interface IWhereParams {
   maxPrice?: number;
   order?: number;
   categoryId?: number;
+}
+
+export interface Order {
+  id: number,
+  order: number
+  categoryId: number;
+  authorId: number;
+}
+export interface Category {
+  id: number,
+  name: string,
+  type: string,
 }
 
 
@@ -52,6 +62,9 @@ export class CatalogService {
 
       if (!user) {
         throw new Error('User not found');
+      }
+      if(user.roleId !== 1){
+        throw new Error("User is not ADMIN")
       }
 
       const existingProduct = await this.catalogDataService.findProduct(createProductDto.name);
@@ -84,12 +97,14 @@ export class CatalogService {
 
 
   async getProducts(query: IQueryParams, request) {
-    const where: any = {
+    console.log("query", query); // Check if the query object is correctly received
 
-    };
+    const where: any = {};
+
     if (request.user !== undefined && request.user.role === "ADMIN") {
-      where.authorId = request.user.id
+      where.authorId = request.user.id;
     }
+
     if (query.type) {
       where.type = query.type.split(',');
     }
@@ -98,61 +113,50 @@ export class CatalogService {
       where.string = query.string.split(',');
     }
 
-
     if (query.price) {
       const price = JSON.parse(query.price);
       if (price.minPrice !== undefined) {
         where.minPrice = price.minPrice;
       }
-
       if (price.maxPrice !== undefined) {
         where.maxPrice = price.maxPrice;
       }
     }
 
-    if (query.order) {
+    if (query.orders) {
       where.orders = {
-        some: {
-          order: query.order
-        }
+        // Flatten the array of objects into an array of order values
+        equals: query.orders.map(order => order.order)
       };
     }
 
-    if (query.categoryId) {
-      where.categories = {
-        some: {
-          categoryId: query.categoryId
-        }
-      };
-    }
+
+
+    
 
     try {
+      console.log("where:", where); // Check if the where object is correctly constructed
       const products = await this.catalogDataService.getProducts(where);
-
-      // Create a new workbook and add a worksheet
-      // const workbook = new ExcelJS.Workbook();
-      // const sheet = workbook.addWorksheet('Products');
-
-      // // Add headers to the worksheet
-      // const headers = ['Product Name', "AuthorId", 'Price', 'Type', 'String', 'Rating' /* Add more fields as needed */];
-      // sheet.addRow(headers);
-
-      // // Add data to the worksheet
-      // products.forEach(product => {
-      //   sheet.addRow([product.productName, product.authorId, product.price, product.type, product.string, product.rating /* Add more fields as needed */]);
-      // });
-
-      // // Return the Excel file as a Buffer
-      // return workbook.xlsx.writeBuffer()
-      return products
+      return products;
     } catch (error) {
-      throw new Error(error)
+      throw new Error(error);
     }
   }
 
+   async getBiggerOrderProducts(product: IQueryParams, user) {
+     try {
+       // Check if the where object is correctly constructed
+       const products = await this.catalogDataService.getBiggerOrderProducts(product, user.id);
+       console.log("biggerOrderProduct", products)
+       return products;
+     } catch (error) {
+       throw new Error(error);
+     }
+   }
+
   async changeProduct(changeProductDto: IChangeProduct, user) {
     try {
-      if (user.role === "ADMIN" && user.id === changeProductDto.authorId) {
+      if (user.role === "USER" && user.id === changeProductDto.authorId) {
         console.log("Product successfully updated");
         const changedProduct = await this.catalogDataService.changeProduct(changeProductDto);
         return changedProduct; // Return the updated product if needed
@@ -192,7 +196,7 @@ export class CatalogService {
 
   async deleteProduct(deleteProductDto: DeleteProductDto, user) {
     try {
-      if (user.role === "ADMIN" && user.id === deleteProductDto.authorId) {
+      if (user.roleId == 1 && user.id === deleteProductDto.authorId) {
         const deletedProduct = await this.catalogDataService.deleteProduct(deleteProductDto)
       }
     } catch (error) {
@@ -233,6 +237,16 @@ export class CatalogService {
         status: 500,
         message: 'Internal Server Error',
       };
+    }
+  }
+
+  async deleteCategory(deleteCategoryDto: IDeleteCategory, user){
+    try {
+      if (user.roleId === 1){
+      const deletedCategory = await this.catalogDataService.deleteCategory(deleteCategoryDto, user.id)
+      }
+    } catch (error) {
+      throw new Error(error)
     }
   }
 

@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { IsEmail, IsNotEmpty, IsOptional } from "@nestjs/class-validator";
-import { IsString } from "class-validator";
+import { IsInt, IsString } from "class-validator";
 
 export class CreateAuthDto {
     @IsString()
@@ -17,6 +17,7 @@ export class CreateAuthDto {
     password: string;
     @IsOptional()
     phoneNumber: string;
+
 
 
     

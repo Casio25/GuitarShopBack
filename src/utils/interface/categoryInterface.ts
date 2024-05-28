@@ -8,3 +8,9 @@ export interface ICustomCategory {
     id: number,
     userId: number
 }
+
+export interface IDeleteCategory {
+    id: number,
+    name: string,
+    type: string
+}

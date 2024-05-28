@@ -1,6 +1,6 @@
 import { IGetProducts } from './../../utils/interface/ProductInterface';
 
-import { ICreateProduct, IProductAuth, IChangeProduct, IDeleteProduct, IReorderProduct, Category, Order } from 'src/utils/interface/ProductInterface';
+import { ICreateProduct, IProductAuth, IChangeProduct, IDeleteProduct, IReorderProduct } from 'src/utils/interface/ProductInterface';
 import { CreateProductDto } from 'src/logic/Dto/catalog/create-product.dto';
 import { ConsoleLogger, Injectable, Req } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -13,15 +13,25 @@ interface IQueryParams {
 
     take?: number;
     skip?: number;
-    authorId: number;
     name?: string;
     minPrice?: number;
     maxPrice?: number;
     categoryId?: number
     order?: number;
     newOrder?: number;
-    type?: string[];
-    string?: string[];
+    categories: Category[]
+    orders: Order[]
+}
+export interface Order {
+    id: number,
+    order: number
+    categoryId: number;
+    authorId: number;
+}
+export interface Category {
+    id: number,
+    name: string,
+    type: string,
 }
 
 
@@ -106,50 +116,58 @@ export class CatalogDataService {
     }
 
 
-    async getProducts(where: IQueryParams): Promise<any> {
+    async getProducts(where: any): Promise<any> {
         try {
-            const whereCondition: any = {
-                authorId: where.authorId,
-            };
-            if (where.name !== undefined) {
-                whereCondition.name = {
-                    name: where.name
-                };
-            }
-
-            // Check if categoryId is defined before adding it to the where condition
-            if (where.categoryId !== undefined) {
-                whereCondition.categories = {
-                    some: {
-                        categoryId: {
-                            in: [where.categoryId] // Use where.categoryId if defined
-                        }
-                    }
-                };
-            }
-
-            // Check if order is defined before adding it to the where condition
-            if (where.order !== undefined) {
-                whereCondition.order = {
-                    gte: where.order // Use where.order if defined
-                };
-            }
-
             const products = await this.prisma.product.findMany({
-                where: whereCondition,
+                where: {
+                    ...where // Include other conditions from the 'where' object
+                },
                 include: {
-                    categories: true, // Include the associated categories
-                    orders: true
+                    categories: true,
+                    orders: true // Ensure that the 'orders' property is included in the query
                 }
             });
-
-            
-
             return products;
         } catch (error) {
             throw error;
         }
     }
+
+    async getBiggerOrderProducts(product: IQueryParams, authorId: number): Promise<any> {
+        try {
+            const products = await this.prisma.product.findMany({
+                where: {
+                    authorId: authorId,
+                    ...product,
+                    // Filter products where the 'orders' field contains orders with order greater than the provided product's order
+                    orders: {
+                        some: {
+                            order: {
+                                gt: product.orders[0].order // Assuming there's only one order in the 'orders' array
+                            }
+                        }
+                    },
+                    // Filtering products based on the category ID
+                    categories: {
+                        // Assuming you have the category ID available in your product object
+                        // Change it accordingly if you're filtering by some other condition
+                        some: {
+                            id: product.categories[0].id // Assuming there's only one category in the 'categories' array
+                        }
+                    }
+                },
+                include: {
+                    categories: true,
+                    orders: true // Ensure that the 'orders' property is included in the query
+                }
+            });
+            return products;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
 
 
     
@@ -161,7 +179,6 @@ export class CatalogDataService {
                     id: product.id
                 },
                 include: {
-                    categories: true,
                     orders: true // Include the orders associated with the product
                 }
             });
@@ -170,17 +187,8 @@ export class CatalogDataService {
                 throw new Error("Product not found");
             }
 
-            // Extract the IDs of the existing categories
-            const existingCategoryIds = existingProduct.categories.map(category => category.id);
-
-            // Extract the IDs of the new categories
-            const newCategoryIds = product.categories.map(category => category.id);
-
-            // Find the IDs of orders that need to be deleted
-            const ordersToDelete = existingProduct.orders.filter(order => !newCategoryIds.includes(order.categoryId));
-
-            // Delete the orders that are associated with categories no longer present in the product
-            await Promise.all(ordersToDelete.map(order =>
+            // Delete all orders associated with the existing product
+            await Promise.all(existingProduct.orders.map(order =>
                 this.prisma.orderOfProduct.delete({
                     where: {
                         id: order.id
@@ -208,7 +216,7 @@ export class CatalogDataService {
             const orders = await Promise.all(product.orders.map(order => {
                 return this.prisma.orderOfProduct.create({
                     data: {
-                        order: order.order + 1,
+                        order: order.order,
                         categoryId: order.categoryId,
                         authorId: updatedProduct.authorId
                     }
@@ -305,17 +313,49 @@ export class CatalogDataService {
 
 
     async deleteProduct(product: IDeleteProduct) {
-        console.log("deleted prodcut,", product)
+        console.log("deleted product:", product);
         try {
-            const deleteProduct = await this.prisma.product.delete({
+            const productToDelete = await this.prisma.product.findUnique({
                 where: {
                     id: product.id
+                },
+                include: {
+                    categories: true,
+                    orders: true
+                }
+            });
+
+            // Delete the product along with its related categories and orders
+            await this.prisma.product.delete({
+                where: {
+                    id: productToDelete.id
+                },
+                include: {
+                    categories: true,
+                    orders: true
+                }
+            });
+
+            console.log("Product, categories, and orders deleted successfully.");
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteCategory(category, authorId){
+        try {
+            console.log(category)
+             await this.prisma.category.delete({
+                where: {
+                    id: category.id
                 }
             })
         } catch (error) {
-            throw error
+            console.error("Error deleting category: ", error);
+            throw new Error(error);
         }
     }
+
 
     async findProduct(product: string) {
         try {

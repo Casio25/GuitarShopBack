@@ -36,4 +36,47 @@ export class GetProductsQueryParamDto {
     @IsOptional()
     @IsString()
     string: string;
+
+    @IsArray() // Change to validate as an array
+    @IsOptional()
+    @IsNotEmpty()
+    categories: Category[];
+
+    @IsArray() // Change to validate as an array
+    @IsOptional()
+    @IsNotEmpty()
+    orders: Order[];
+}
+
+class Order {
+    @IsInt()
+    @IsNotEmpty()
+    id;
+
+    @IsInt()
+    @IsNotEmpty()
+    order;
+
+    @IsInt()
+    @IsNotEmpty()
+    categoryId;
+
+    @IsInt()
+    @IsNotEmpty()
+    authorId
+}
+
+class Category {
+    @IsNotEmpty()
+    @IsInt()
+    id: number
+
+    @IsNotEmpty()
+    @IsString()
+    name: string
+
+    @IsNotEmpty()
+    @IsString()
+    type: string
+
 }

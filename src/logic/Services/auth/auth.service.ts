@@ -115,7 +115,7 @@ export class AuthService {
     }
 
     const { password, ...result } = user;
-    const payload = { id: user.id, email: user.email, role: user.role };
+    const payload = { id: user.id, email: user.email };
 
     return {
       access_token: await this.jwtService.signAsync(payload)
@@ -131,7 +131,7 @@ export class AuthService {
     const user = await this.authDataService.findUser(req.email);
 
     const { password, ...result } = user;
-    const payload = { id: user.id, email: user.email, role: user.role };
+    const payload = { id: user.id, email: user.email };
     return {
       access_token: await this.jwtService.signAsync(payload)
     };

@@ -14,7 +14,6 @@ interface IUpdateData {
     firstName: string;
     secondName: string;
     phoneNumber: string;
-    role: Role;
     isEmailConfirmed: boolean;
 }
 
@@ -49,6 +48,9 @@ export class AuthDataService {
                     secondName: userData.secondName,
                     email: userData.email,
                     password: userData.password,
+                    role:{
+                        connect: {id: 1}
+                    }
                 },
             });
 
@@ -78,7 +80,6 @@ export class AuthDataService {
                     firstName: where.firstName,
                     secondName: where.secondName,
                     password: where.password,
-                    role: where.role,
                     phoneNumber: where.phoneNumber
 
 

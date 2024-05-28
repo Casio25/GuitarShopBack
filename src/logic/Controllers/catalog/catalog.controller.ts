@@ -12,6 +12,7 @@ import { CreateCategoryDto } from 'src/logic/Dto/catalog/create-category.dts';
 import { DeleteProductDto } from 'src/logic/Dto/catalog/delete-product.dto';
 import { ReorderProductDto } from 'src/logic/Dto/catalog/reorder-product.dto';
 import { GetMaxOrderDto } from 'src/logic/Dto/catalog/get-max-order.dto';
+import { DeleteCategoryDto } from 'src/logic/Dto/catalog/delete-category.dto';
 
 
 @Controller('catalog')
@@ -93,12 +94,21 @@ export class CatalogController {
   @UseGuards(AuthGuard)
   @Delete("delete")
   async deleteProduct(@Body() deleteProductDto: DeleteProductDto, @Req() request: IOrdersRequest): Promise<any> {
-    console.log("deleteed product", deleteProductDto)
+    console.log("deleted product", deleteProductDto)
     const user = request.user;
-    const biggerOrderProducts = await this.catalogService.getProducts(deleteProductDto, request);
-    console.log("bigger order products: ", biggerOrderProducts);
+    // const biggerOrderProducts = await this.catalogService.getBiggerOrderProducts(deleteProductDto, request);
+    // console.log("bigger order products: ", biggerOrderProducts);
     // const changedOrderProducts = await this.catalogService.lowerOrderByOne(biggerOrderProducts, user);
     return this.catalogService.deleteProduct(deleteProductDto, user);
+    
+  }
+  @UseGuards(AuthGuard)
+  @Delete("delete_category")
+  async deleteCategory(@Body() deleteCategoryDto: DeleteCategoryDto, @Req() request: IOrdersRequest): Promise<any> {
+    console.log("deleted category", deleteCategoryDto)
+    const user = request.user;
+    return this.catalogService.deleteCategory(deleteCategoryDto, user);
+
   }
  }
 

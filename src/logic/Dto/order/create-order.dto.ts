@@ -1,21 +1,18 @@
 /* eslint-disable prettier/prettier */
-import { IsString, IsInt, IsNotEmpty, IsArray } from "@nestjs/class-validator";
+import { IsString, IsInt, IsNotEmpty, IsArray, IsDate } from "@nestjs/class-validator";
 export class CreateOrderDto {
-  orderId: string;
+  @IsInt()
+  orderId: number;
   @IsArray()
   @IsNotEmpty({ each: true })
-  items: Order[];
+  products: Order[];
   @IsString()
-  date: string;
-  userEmail: string;
-  userPassword: string;
-  totalPrice: number;
+  creatAt: Date
+  venueId: number;
 }
 
 export class Order {
   @IsInt()
-  itemId: number;
-  price: number;
-  @IsInt()
+  productId: number;
   quantity: number;
 }
