@@ -18,6 +18,13 @@ export class OrdersController {
   }
 
   @UseGuards(AuthGuard)
+  @Patch("update_order")
+  update(@Body() updateOrderDto: UpdateOrderDto, @Req() request: IOrdersRequest){
+    const user = request.user
+    return this.ordersService.update(updateOrderDto, user)
+  }
+
+  @UseGuards(AuthGuard)
   @Get('get_orders')
   findAll(@Req() request: IOrdersRequest) {
     const user = request.user

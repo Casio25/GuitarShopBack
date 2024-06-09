@@ -34,6 +34,10 @@ export interface Category {
     type: string,
 }
 
+export interface Product {
+    id?: number
+}
+
 
 
 
@@ -118,20 +122,27 @@ export class CatalogDataService {
 
     async getProducts(where: any): Promise<any> {
         try {
+            const productWhereClause: any = { ...where };
+
+            if (productWhereClause.ids) {
+                productWhereClause.id = { in: productWhereClause.ids };
+                delete productWhereClause.ids; // Remove 'ids' since it's now part of 'id' filter
+            }
+
             const products = await this.prisma.product.findMany({
-                where: {
-                    ...where // Include other conditions from the 'where' object
-                },
+                where: productWhereClause,
                 include: {
                     categories: true,
                     orders: true // Ensure that the 'orders' property is included in the query
                 }
             });
+
             return products;
         } catch (error) {
             throw error;
         }
     }
+
 
     async getBiggerOrderProducts(product: IQueryParams, authorId: number): Promise<any> {
         try {

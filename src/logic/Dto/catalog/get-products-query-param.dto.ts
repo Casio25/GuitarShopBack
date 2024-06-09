@@ -34,6 +34,9 @@ export class GetProductsQueryParamDto {
     type: string;
 
     @IsOptional()
+    productId: string
+
+    @IsOptional()
     @IsString()
     string: string;
 

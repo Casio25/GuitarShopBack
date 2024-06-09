@@ -1,5 +1,21 @@
 /* eslint-disable prettier/prettier */
-import { IsString, IsInt, IsNotEmpty, IsArray, IsDate } from "@nestjs/class-validator";
+import { IsString, IsInt, IsNotEmpty, IsArray, IsDate, IsEnum } from "@nestjs/class-validator";
+
+export enum OrderStatus {
+  new = "new",
+  inProgress = "inProgress",
+  finished = "finished"
+}
+export enum PaymentStatus {
+  paid = 'paid',
+  unpaid = 'unpaid'
+}
+
+export enum PaymentType {
+  cash = "cash",
+  digital = "digital"
+}
+
 export class CreateOrderDto {
   @IsInt()
   orderId: number;
@@ -7,8 +23,11 @@ export class CreateOrderDto {
   @IsNotEmpty({ each: true })
   products: Order[];
   @IsString()
-  creatAt: Date
+  creatAt: string
   venueId: number;
+  payment: Payment;
+  @IsEnum(OrderStatus)
+  orderStatus: OrderStatus
 }
 
 export class Order {
@@ -16,3 +35,10 @@ export class Order {
   productId: number;
   quantity: number;
 }
+
+export class Payment {
+  paymentStatus: PaymentStatus;
+  paymentType: PaymentType;
+}
+
+

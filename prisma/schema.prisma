@@ -53,19 +53,33 @@ model Order {
   id      Int         @id @default(autoincrement())
   orderId Int
   creatAt DateTime    @default(now())
-  status  OrderStatus @default(new)
+  orderStatus  OrderStatus @default(new)
   author     User @relation(fields: [authorId], references: [id])
   authorId Int
   totalPrice Int
   payment Payment[]
   venue   Venue[]
+  products ProductOnOrder[]
+}
+
+model ProductOnOrder {
+  id             Int      @id @default(autoincrement())
+  productId      Int
+  product        Product  @relation(fields: [productId], references: [id])
+  productName    String
+  orderId        Int
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productQuantity Int
+  productPrice Int
+  
 }
 
 model Payment {
   id     Int         @id @default(autoincrement())
-  type   PaymentType
-  status PaymentStatus @default(Unpaid)
-  orders Order[]
+  paymentType   PaymentType
+  paymentStatus PaymentStatus @default(unpaid)
+  orderId       Int          // Foreign key field
+  order         Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Venue {
@@ -120,6 +134,7 @@ model Product {
   inStock     Boolean
   categories  Category[]
   orders      OrderOfProduct[] // One product can have multiple orders across different categories
+  productOnOrder ProductOnOrder[]
 }
 
 
@@ -141,6 +156,6 @@ enum PaymentType {
 }
 
 enum PaymentStatus {
-  Paid
-  Unpaid
+  paid
+  unpaid
 }

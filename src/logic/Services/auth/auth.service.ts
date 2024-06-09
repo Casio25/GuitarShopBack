@@ -245,6 +245,9 @@ export class AuthService {
     });
   }
 
+  async createPermission(){
+    return this.authDataService.createRoleAndPermissions()
+  }
 
 
 

@@ -47,6 +47,11 @@ export class AuthController {
   oneTimeToken(@Request() req){
   return this.authService.oneTimeToken(req.user)
   }
+
+  @Post("create_permission")
+  createPermission(){
+    return this.authService.createPermission()
+  }
   
 
 

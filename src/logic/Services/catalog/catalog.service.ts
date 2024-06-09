@@ -19,6 +19,7 @@ interface IQueryParams {
   type?: string,
   string?: string,
   price?: string,
+  productIds?: string,
   categories: Category[]
   orders: Order[]
 }
@@ -101,12 +102,20 @@ export class CatalogService {
 
     const where: any = {};
 
-    if (request.user !== undefined && request.user.role === "ADMIN") {
+    if (request.user !== undefined && request.user.roleId === 1) {
       where.authorId = request.user.id;
     }
 
     if (query.type) {
       where.type = query.type.split(',');
+    }
+    if (query.productIds) {
+      
+      const productIds = Array.isArray(query.productIds)
+        ? query.productIds.map(id => Number(id))
+        : query.productIds.split(',').map(id => Number(id));
+
+      where.id = { in: productIds }; 
     }
 
     if (query.string) {
@@ -156,7 +165,7 @@ export class CatalogService {
 
   async changeProduct(changeProductDto: IChangeProduct, user) {
     try {
-      if (user.role === "USER" && user.id === changeProductDto.authorId) {
+      if (user.roleId === 1 && user.id === changeProductDto.authorId) {
         console.log("Product successfully updated");
         const changedProduct = await this.catalogDataService.changeProduct(changeProductDto);
         return changedProduct; // Return the updated product if needed

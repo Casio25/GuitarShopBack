@@ -17,9 +17,6 @@ export class CreateAuthDto {
     password: string;
     @IsOptional()
     phoneNumber: string;
-
-
-
-    
+ 
     
 }

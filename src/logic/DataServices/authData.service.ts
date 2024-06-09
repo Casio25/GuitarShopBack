@@ -100,6 +100,51 @@ export class AuthDataService {
         }
     }
 
+    async createRoleAndPermissions() {
+        try {
+            // Create a role first
+            const role = await this.prisma.role.create({
+                data: {
+                    name: 'Admin',
+                    description: 'Administrator with full permissions',
+                },
+            });
+
+            console.log('Role created:', role);
+
+            // Permissions associated with the created role
+            const permissions = [
+                {
+                    action: 'read',
+                    resource: 'Product',
+                    description: 'Read permission for products',
+                    roleId: role.id,
+                },
+                {
+                    action: 'write',
+                    resource: 'Product',
+                    description: 'Write permission for products',
+                    roleId: role.id,
+                },
+                {
+                    action: 'delete',
+                    resource: 'Product',
+                    description: 'Delete permission for products',
+                    roleId: role.id,
+                },
+                // Add more permissions as needed
+            ];
+
+            const createdPermissions = await this.prisma.permission.createMany({
+                data: permissions,
+            });
+
+            console.log('Permissions created:', createdPermissions);
+        } catch (error) {
+            console.error('Error creating role or permissions:', error);
+            throw new Error('Role or Permission not created');
+    }
+}
 
     
 
