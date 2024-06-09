@@ -163,8 +163,9 @@ export class CatalogService {
      }
    }
 
-  async changeProduct(changeProductDto: IChangeProduct, user) {
+  async changeProduct(changeProductDto: IChangeProduct, email: string) {
     try {
+      const user = await this.authDataService.findUser(email);
       if (user.roleId === 1 && user.id === changeProductDto.authorId) {
         console.log("Product successfully updated");
         const changedProduct = await this.catalogDataService.changeProduct(changeProductDto);
@@ -203,8 +204,9 @@ export class CatalogService {
   // }
 
 
-  async deleteProduct(deleteProductDto: DeleteProductDto, user) {
+  async deleteProduct(deleteProductDto: DeleteProductDto, email: string) {
     try {
+      const user = await this.authDataService.findUser(email);
       if (user.roleId == 1 && user.id === deleteProductDto.authorId) {
         const deletedProduct = await this.catalogDataService.deleteProduct(deleteProductDto)
       }
@@ -249,8 +251,9 @@ export class CatalogService {
     }
   }
 
-  async deleteCategory(deleteCategoryDto: IDeleteCategory, user){
+  async deleteCategory(deleteCategoryDto: IDeleteCategory, email: string){
     try {
+      const user = await this.authDataService.findUser(email);
       if (user.roleId === 1){
       const deletedCategory = await this.catalogDataService.deleteCategory(deleteCategoryDto, user.id)
       }

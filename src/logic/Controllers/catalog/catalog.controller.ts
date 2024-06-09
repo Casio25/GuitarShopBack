@@ -72,9 +72,9 @@ export class CatalogController {
   @UseGuards(AuthGuard)
   @Patch("change")
    async changeProduct(@Body() changeProductDto: ChangeProductDto, @Req() request: IOrdersRequest) {
-    const user = request.user;
+    const email = request.user.email
     try {
-      const updatedProduct = await this.catalogService.changeProduct(changeProductDto, user);
+      const updatedProduct = await this.catalogService.changeProduct(changeProductDto, email);
       return updatedProduct;
     } catch (error) {
       // Handle error appropriately
@@ -95,19 +95,19 @@ export class CatalogController {
   @Delete("delete")
   async deleteProduct(@Body() deleteProductDto: DeleteProductDto, @Req() request: IOrdersRequest): Promise<any> {
     console.log("deleted product", deleteProductDto)
-    const user = request.user;
+    const email = request.user.email
     // const biggerOrderProducts = await this.catalogService.getBiggerOrderProducts(deleteProductDto, request);
     // console.log("bigger order products: ", biggerOrderProducts);
     // const changedOrderProducts = await this.catalogService.lowerOrderByOne(biggerOrderProducts, user);
-    return this.catalogService.deleteProduct(deleteProductDto, user);
+    return this.catalogService.deleteProduct(deleteProductDto, email);
     
   }
   @UseGuards(AuthGuard)
   @Delete("delete_category")
   async deleteCategory(@Body() deleteCategoryDto: DeleteCategoryDto, @Req() request: IOrdersRequest): Promise<any> {
     console.log("deleted category", deleteCategoryDto)
-    const user = request.user;
-    return this.catalogService.deleteCategory(deleteCategoryDto, user);
+    const email = request.user.email
+    return this.catalogService.deleteCategory(deleteCategoryDto, email);
 
   }
  }
