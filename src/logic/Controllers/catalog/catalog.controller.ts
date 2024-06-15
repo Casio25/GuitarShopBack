@@ -22,7 +22,7 @@ export class CatalogController {
 
 
   @UseGuards(AuthGuard)
-  @Post()
+  @Post("add_product")
   createProduct(@Body() createProductDto: CreateProductDto, @Req() request: IOrdersRequest) {
     const email = request.user.email
     const response = this.catalogService.createProduct(createProductDto, email)
@@ -59,7 +59,7 @@ export class CatalogController {
   //CustomAuthGuard will get a response even if there is no jwt token
   //OneTimeAuthGuard wil expire in 10 second so can 
   @UseGuards(AuthGuard)
-  @Get()
+  @Get("get_products")
   getProducts(
     @Query() query: GetProductsQueryParamDto,
     @Req() request: IOrdersRequest,
