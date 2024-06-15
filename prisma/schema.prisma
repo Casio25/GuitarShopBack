@@ -8,10 +8,11 @@ generator client {
   previewFeatures = ["relationJoins"]
 }
 
-// datasource db {
-//   provider = "postgresql"
-//   url      = env("DATABASE_URL")
-// }
+datasource db {
+  provider = "postgresql"
+  url = "process.env.DATABASE_URL"
+}
+// url      = env("DATABASE_URL")
 
 model User {
   id               Int     @id @default(autoincrement())
