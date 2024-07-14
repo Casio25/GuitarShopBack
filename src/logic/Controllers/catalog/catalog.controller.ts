@@ -31,6 +31,10 @@ export class CatalogController {
     
   }
 
+  @Get("test")
+  testResponse(){
+    return "this is test message to see if backend on heroku is working"
+  }
   @UseGuards(AuthGuard)
   @Post("create_category")
   createCategory(@Body() createCategoryDto: CreateCategoryDto, @Req() request: IOrdersRequest) {
