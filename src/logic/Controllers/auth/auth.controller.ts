@@ -1,5 +1,5 @@
 import { SignInAuthDto } from '../../Dto/auth/signin-auth.dto';
-/* eslint-disable prettier/prettier */
+
 import { Controller, Get, Post, Body, HttpCode, HttpStatus, Request, UseGuards, Patch } from '@nestjs/common';
 import { AuthGuard, OneTimeAuthGuard } from '../../../auth/auth.guard';
 import { AuthService } from '../../Services/auth/auth.service';

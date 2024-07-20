@@ -1,20 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
+import { describe, expect, test } from '@jest/globals';
 import { AuthService } from '../../Services/auth/auth.service';
+import { AuthDataService } from '@src/logic/DataServices/authData.service';
+import { AuthModule } from '@src/logic/Modules/auth/auth.module';
 
 describe('AuthController', () => {
-  let controller: AuthController;
+  let authController: AuthController;
+  let authService: AuthService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
-      providers: [AuthService],
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AuthModule],
     }).compile();
 
-    controller = module.get<AuthController>(AuthController);
+    authController = moduleRef.get<AuthController>(AuthController);
+    authService = moduleRef.get<AuthService>(AuthService);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
 });

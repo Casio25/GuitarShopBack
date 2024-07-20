@@ -91,10 +91,8 @@ export class AuthService {
 
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-          console.log('Error sending email:', error);
           reject(error);
         } else {
-          console.log('Email sent:', info.response);
           resolve();
         }
       });
