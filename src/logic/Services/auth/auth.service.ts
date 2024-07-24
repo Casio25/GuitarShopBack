@@ -29,7 +29,7 @@ export class AuthService {
       if (user) {
         throw new Error("User already exists")
       }
-      await this.authDataService.createUser(createAuthDto);
+      const newUser = await this.authDataService.createUser(createAuthDto);
       const payload = {email: createAuthDto.email}
       const jwtToken = await this.jwtService.signAsync(payload);
       await this.sendEmail(createAuthDto.email, jwtToken)
@@ -39,6 +39,7 @@ export class AuthService {
         .catch((error) => {
           console.log('User registered, but email sending failed:', error);
         });
+      return newUser  
     } catch (error) {
       console.error('Error creating user:', error.message);
       return { error: error.message };
