@@ -112,7 +112,6 @@ export class AuthDataService {
 
             console.log('Role created:', role);
 
-            // Permissions associated with the created role
             const permissions = [
                 {
                     action: 'read',
@@ -132,7 +131,7 @@ export class AuthDataService {
                     description: 'Delete permission for products',
                     roleId: role.id,
                 },
-                // Add more permissions as needed
+                
             ];
 
             const createdPermissions = await this.prisma.permission.createMany({

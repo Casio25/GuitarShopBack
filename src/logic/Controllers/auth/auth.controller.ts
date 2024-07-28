@@ -1,4 +1,4 @@
-import { SignInAuthDto } from '../../Dto/auth/signin-auth.dto';
+import { SignInAuthDto, SignInRespDTO } from '../../Dto/auth/signin-auth.dto';
 
 import { Controller, Get, Post, Body, HttpCode, HttpStatus, Request, UseGuards, Patch } from '@nestjs/common';
 import { AuthGuard, OneTimeAuthGuard } from '../../../auth/auth.guard';
@@ -17,8 +17,9 @@ export class AuthController {
   }
   @HttpCode(HttpStatus.OK)
    @Post("sign_in")
-   signIn(@Body() signInAuthDto: SignInAuthDto) {
-   return this.authService.signIn(signInAuthDto);
+   async signIn(@Body() signInAuthDto: SignInAuthDto) {
+   const resp = await this.authService.signIn(signInAuthDto);
+   return new SignInRespDTO(resp)
    }
 
    @Post("resend_email")
@@ -44,8 +45,9 @@ export class AuthController {
   }
   @UseGuards(AuthGuard)
   @Get("one_time_token")
-  oneTimeToken(@Request() req){
-  return this.authService.oneTimeToken(req.user)
+  async oneTimeToken(@Request() req){
+  const resp = await this.authService.oneTimeToken(req.user)
+    return new SignInRespDTO(resp)
   }
 
   @Post("create_permission")
@@ -53,14 +55,6 @@ export class AuthController {
     return this.authService.createPermission()
   }
   
-
-
-
-  @UseGuards(AuthGuard)
-  @Get('profile')
-  getProfile(@Request() req) {
-    return req;
-  }
   // @Post("verify")
   // verifyEmail(@Body() verifyAuthDto: VerifyAuthDto){
   //   return this.authService.verify(verifyAuthDto)

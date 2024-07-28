@@ -6,7 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ICreateAuth, ISignAuth } from '../../../utils/interface/authInterface';
 import { Injectable } from '@nestjs/common';
 import { CreateAuthDto } from '../../Dto/auth/create-auth.dto';
-import { SignInAuthDto } from '../../Dto/auth/signin-auth.dto';
+import { ISignInResponse, SignInAuthDto } from '../../Dto/auth/signin-auth.dto';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from 'src/utils/interface/jwtpayloadInterface';
@@ -42,7 +42,7 @@ export class AuthService {
       return newUser  
     } catch (error) {
       console.error('Error creating user:', error.message);
-      return { error: error.message };
+      throw new Error ("Error creating new user")
     }
   }
 
@@ -64,7 +64,7 @@ export class AuthService {
         });
   }catch (error){
     console.error("Error resending email: ", error.message);
-    return {error: error.message};
+    throw new Error ("Error resending email: ")
   }
 }
 
@@ -75,8 +75,8 @@ export class AuthService {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: 'mishakolomiets355@gmail.com',
-          pass: 'jtkrcyyvszokkbqz',
+          user: process.env.NODEMAILER_EMAIL,
+          pass: process.env.NODEMAILER_PASSWORD,
         },
       });
 
@@ -100,7 +100,7 @@ export class AuthService {
     });
   }
 
-  async signIn(signInAuthDto: ISignAuth): Promise<any> {
+  async signIn(signInAuthDto: ISignAuth): Promise<ISignInResponse> {
     const user = await this.authDataService.findUser(signInAuthDto.email);
     try{
 
@@ -110,7 +110,8 @@ export class AuthService {
 
     const isPasswordValid = user.password === signInAuthDto.password;
     if (!isPasswordValid) {
-      return { error: "Wrong password" };
+      throw new Error("Wrong password");
+      
     }
 
     const { password, ...result } = user;
@@ -121,7 +122,7 @@ export class AuthService {
     };
   }catch(error){
       console.error('Error logging in:', error.message);
-      return { error: error.message };
+      throw new Error("Error logging in")
   }
   }
 
@@ -154,7 +155,7 @@ export class AuthService {
         });
     } catch (error) {
       console.error("Error resending email: ", error.message);
-      return { error: error.message };
+      throw new Error("Error resending email")
     }
   }
 
@@ -176,13 +177,11 @@ export class AuthService {
       if (!user) {
         throw new Error("User doesn't exist");
       }
-
-      // Assuming you have an update method in authDataService
       await this.authDataService.update(user, where);
 
-      // You may return some response here if needed
+      
     } catch (error) {
-      throw error;
+      throw error ("Error updating user");
     }
   }
 
@@ -198,12 +197,11 @@ export class AuthService {
         isEmailConfirmed: true
       }
 
-      // Assuming you have an update method in authDataService
       await this.authDataService.update(user, where);
 
-      // You may return some response here if needed
+      
     } catch (error) {
-      throw error;
+      throw error ("Error verifying user");
     }
   }
 
