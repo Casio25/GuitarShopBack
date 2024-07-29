@@ -27,4 +27,27 @@ describe('CatalogController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
+
+  it("should create product", async ()=> {
+    const newProduct ={
+      name: "NewProduct",
+    authorId: 1,
+    price: 100,
+    photo:"photo",
+    categories: {
+      id: 1,
+      name: "categoryName",
+      type: "categoryType"
+    },
+    orders: {
+      id: 1,
+      order: 1,
+      categoryId: 1,
+      authorId: 1
+    },
+    description: "decription",  
+    visibility: true,
+    inStock: true
+    }
+  })
 });

@@ -142,8 +142,4 @@ describe('AuthController', () => {
     jest.spyOn(authController, "createPermission")
   })
 
-  it ("should return profile", async() => {
-    
-  })
-
 })
