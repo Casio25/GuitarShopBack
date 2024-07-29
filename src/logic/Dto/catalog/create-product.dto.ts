@@ -1,5 +1,7 @@
 import { IsString, IsInt, IsNotEmpty, IsBoolean, IsArray } from "@nestjs/class-validator";
+import { ICreateProductResponse } from "src/utils/interface/ProductInterface";
 import { IsIn, IsOptional } from "class-validator";
+import { Type } from "class-transformer";
 
 export class CreateProductDto {
     @IsNotEmpty()
@@ -69,4 +71,54 @@ class Category{
     @IsString()
     type: string
 
+}
+export class BaseResponseDto<T> {
+    constructor(obj: T) {
+        Object.assign(this, obj);
+    }
+}
+export class CreateProductResData{
+    @IsInt()
+    @IsNotEmpty()
+    id: number;
+
+    @IsNotEmpty()
+    @IsString()
+    name: string;
+
+
+    @IsInt()
+    @IsNotEmpty()
+    authorId: number;
+
+    @IsInt()
+    @IsNotEmpty()
+    price: number;
+
+    @IsString()
+    photo: string;
+
+    @IsString()
+    description: string;
+
+    @IsBoolean()
+    @IsNotEmpty()
+    visibility: boolean;
+
+    @IsBoolean()
+    @IsNotEmpty()
+    inStock: boolean;
+}
+
+export class CreateProductResDTO implements ICreateProductResponse {
+    @IsOptional()
+    @Type(() => CreateProductResData)
+    data?: CreateProductResData;
+
+    @IsInt()
+    status: number;
+
+    @IsString()
+    @IsOptional()
+    error?: string;
 }

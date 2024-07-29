@@ -10,6 +10,22 @@ export interface ICreateProduct {
     orders: Order[]
     
 }
+export interface ICreateProductResponseData{
+    id: number;
+    authorId: number;
+    name: string
+    photo: string
+    description: string
+    price: number
+    visibility: boolean
+    inStock: boolean
+}
+export interface ICreateProductResponse {
+    data?: ICreateProductResponseData
+    status: number
+    error?: string
+    
+}
 export interface Category {
     id: number,
     name: string,

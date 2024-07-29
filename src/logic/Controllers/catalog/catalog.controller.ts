@@ -3,7 +3,7 @@ import { IOrdersRequest } from 'src/utils/interface/requestInterface';
 import { CatalogService } from '../../Services/catalog/catalog.service';
 import { Body, Controller, Get, Post, Patch, Query, UseGuards, Req, Res, Delete } from '@nestjs/common';
 import { offers } from '../../../data/CatalogData.js';
-import { CreateProductDto } from 'src/logic/Dto/catalog/create-product.dto';
+import { CreateProductDto, CreateProductResData, CreateProductResDTO } from 'src/logic/Dto/catalog/create-product.dto';
 import { AuthGuard, CustomAuthGuard, OneTimeAuthGuard } from 'src/auth/auth.guard';
 import { IProductAuth, IChangeProduct } from 'src/utils/interface/ProductInterface';
 import { GetProductsQueryParamDto } from 'src/logic/Dto/catalog/get-products-query-param.dto';
@@ -23,11 +23,16 @@ export class CatalogController {
 
   @UseGuards(AuthGuard)
   @Post("add_product")
-  createProduct(@Body() createProductDto: CreateProductDto, @Req() request: IOrdersRequest) {
+  async createProduct(@Body() createProductDto: CreateProductDto, @Req() request: IOrdersRequest) {
     const email = request.user.email
-    const response = this.catalogService.createProduct(createProductDto, email)
-    console.log("creating product", response)
-    return response
+    const response = await this.catalogService.createProduct(createProductDto, email)
+    console.log("controller reponse", response)
+    const dto = new CreateProductResDTO();
+    dto.data = response.data ? Object.assign(new CreateProductResData(), response.data) : undefined;
+    dto.status = response.status;
+    dto.error = response.error;
+
+    return dto;
     
   }
 

@@ -6,7 +6,7 @@ import { CreateProductDto } from './../../Dto/catalog/create-product.dto';
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { Injectable, Res } from '@nestjs/common';
 import { offers } from 'src/data/CatalogData';
-import { ICreateProduct, IProductAuth, IChangeProduct, IReorderProduct, IGetProducts } from 'src/utils/interface/ProductInterface';
+import { ICreateProduct, IProductAuth, IChangeProduct, IReorderProduct, IGetProducts, ICreateProductResponse } from 'src/utils/interface/ProductInterface';
 import { AuthDataService } from 'src/logic/DataServices/authData.service';
 import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
@@ -56,7 +56,7 @@ export class CatalogService {
     return this.catalogOffers;
   }
 
-  async createProduct(createProductDto: ICreateProduct, email: string) {
+  async createProduct(createProductDto: ICreateProduct, email: string): Promise<{ status: number, data?: ICreateProductResponse, error?: string }> {
     try {
       const user = await this.authDataService.findUser(email);
       console.log("user who create: ", user);
@@ -64,35 +64,26 @@ export class CatalogService {
       if (!user) {
         throw new Error('User not found');
       }
-      if(user.roleId !== 1){
-        throw new Error("User is not ADMIN")
+      if (user.roleId !== 1) {
+        return { status: 403, error: "User is not ADMIN" };
       }
 
       const existingProduct = await this.catalogDataService.findProduct(createProductDto.name);
       console.log("existing product", existingProduct);
 
       if (existingProduct && existingProduct.authorId === user.id) {
-        return {
-          status: 400,
-          message: 'Product with this name already exists',
-        };
+        return { status: 400, error: "Product with this name already exists" };
       } else {
         const newProduct = await this.catalogDataService.createProduct(createProductDto, user.id);
         console.log("new product", newProduct);
-        return {
-          status: 201,
-          message: 'Product created successfully',
-        };
+        return { status: 201, data: newProduct };
       }
-
     } catch (error) {
       console.error(error);
-      return {
-        status: 500,
-        message: 'Error creating user',
-      };
+      return { status: 500, error: "Error creating product" };
     }
   }
+
 
 
 
