@@ -1,17 +1,20 @@
 import { ChangeProductDto } from 'src/logic/Dto/catalog/change-product.dto';
 import { CatalogDataService } from 'src/logic/DataServices/catalogData.service';
-import { CreateProductDto } from './../../Dto/catalog/create-product.dto';
+import { CreateProductDto, GetArrayOfProductsResponseDto, GetProductsResponseDTO } from './../../Dto/catalog/create-product.dto';
 
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { Injectable, Res } from '@nestjs/common';
+import { Injectable, Res, BadRequestException, NotFoundException, ForbiddenException, BadGatewayException, UnauthorizedException } from '@nestjs/common';
 import { offers } from 'src/data/CatalogData';
-import { ICreateProduct, IProductAuth, IChangeProduct, IReorderProduct, IGetProducts, ICreateProductResponse } from 'src/utils/interface/ProductInterface';
+import { ICreateProduct, IProductAuth, IChangeProduct, IReorderProduct, IGetProducts, ICreateProductResponse, ICreateProductResponseData, IGetProductsResponse, IGetProductsDataServiceResponse } from '@src/utils/interface/ProductInterface';
 import { AuthDataService } from 'src/logic/DataServices/authData.service';
 import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
-import { ICreateCategory, IDeleteCategory } from 'src/utils/interface/categoryInterface';
+import { ICreateCategory, ICreateCategoryDataResponse, ICreateCategoryResponse, IDeleteCategory, IGetCategoriesDataServiceResponse, IGetCategoriesResponse } from '@src/utils/interface/categoryInterface';
 import { DeleteProductDto } from 'src/logic/Dto/catalog/delete-product.dto';
+import { IOrdersRequest, IUserRequest } from '@src/utils/interface/requestInterface';
+import { User } from '@prisma/client';
+import { IFindUser } from '@src/utils/interface/IUser';
 
 const fs = require("fs");
 const catalogData = fs.readFileSync('catalog.txt', 'utf-8');
@@ -22,6 +25,8 @@ interface IQueryParams {
   productIds?: string,
   categories: Category[]
   orders: Order[]
+  skip: number,
+  take: number
 }
 interface IWhereParams {
   authorId: number;
@@ -52,53 +57,55 @@ export class CatalogService {
   constructor(private catalogDataService: CatalogDataService,
     private authDataService: AuthDataService) { }
 
-  getCatalog() {
-    return this.catalogOffers;
+  private checkAdminRole(user: User){
+    console.log("user", user.roleId)
+    if (user.roleId !== 1){
+      throw new UnauthorizedException("Access denied")
+    }
+  }
+  private checkForUser(user: User){
+    if (!user){
+      throw new NotFoundException("User not found")
+    }
   }
 
-  async createProduct(createProductDto: ICreateProduct, email: string): Promise<{ status: number, data?: ICreateProductResponse, error?: string }> {
-    try {
-      const user = await this.authDataService.findUser(email);
-      console.log("user who create: ", user);
 
-      if (!user) {
-        throw new Error('User not found');
-      }
-      if (user.roleId !== 1) {
-        return { status: 403, error: "User is not ADMIN" };
-      }
+  
+
+  async createProduct(createProductDto: ICreateProduct, user: IFindUser): Promise<any> {
+    const userData = {
+      id: user.uid
+    }
+    const foundedUser = await this.authDataService.findUser(userData)
+
+      this.checkForUser(foundedUser)
+      this.checkAdminRole(foundedUser)
 
       const existingProduct = await this.catalogDataService.findProduct(createProductDto.name);
-      console.log("existing product", existingProduct);
-
-      if (existingProduct && existingProduct.authorId === user.id) {
-        return { status: 400, error: "Product with this name already exists" };
+      if (existingProduct && existingProduct.authorId === foundedUser.id) {
+        throw new BadRequestException("Product with this name already exists")
       } else {
-        const newProduct = await this.catalogDataService.createProduct(createProductDto, user.id);
+        const newProduct = await this.catalogDataService.createProduct(createProductDto, foundedUser.id);
         console.log("new product", newProduct);
-        return { status: 201, data: newProduct };
       }
-    } catch (error) {
-      console.error(error);
-      return { status: 500, error: "Error creating product" };
-    }
   }
 
 
 
 
 
-  async getProducts(query: IQueryParams, request) {
-    console.log("query", query); // Check if the query object is correctly received
-
-    const where: any = {};
-
-    if (request.user !== undefined && request.user.roleId === 1) {
-      where.authorId = request.user.id;
+  async getProducts(query: IQueryParams, user: IFindUser): Promise<IGetProductsDataServiceResponse> {
+    console.log("query", query); 
+    const userData = {
+      id: user.uid
     }
+    const foundedUser = await this.authDataService.findUser(userData)
+    const where: any = {};
+    let skip = 0;
+    let take = 100
 
-    if (query.type) {
-      where.type = query.type.split(',');
+    if (foundedUser !== undefined && foundedUser.roleId === 1) {
+      where.authorId = userData.id;
     }
     if (query.productIds) {
       
@@ -108,11 +115,7 @@ export class CatalogService {
 
       where.id = { in: productIds }; 
     }
-
-    if (query.string) {
-      where.string = query.string.split(',');
-    }
-
+    
     if (query.price) {
       const price = JSON.parse(query.price);
       if (price.minPrice !== undefined) {
@@ -130,13 +133,18 @@ export class CatalogService {
       };
     }
 
+    if (query.skip){
+      skip = query.skip
+    }
+    if (query.take){
+      take = query.take
+    }
 
 
     
 
     try {
-      console.log("where:", where); // Check if the where object is correctly constructed
-      const products = await this.catalogDataService.getProducts(where);
+      const products = await this.catalogDataService.getProducts(where, skip, take);
       return products;
     } catch (error) {
       throw new Error(error);
@@ -147,28 +155,20 @@ export class CatalogService {
      try {
        // Check if the where object is correctly constructed
        const products = await this.catalogDataService.getBiggerOrderProducts(product, user.id);
-       console.log("biggerOrderProduct", products)
        return products;
      } catch (error) {
-       throw new Error(error);
+       throw new BadRequestException("Error getting bigger order products: ", error);
      }
    }
 
-  async changeProduct(changeProductDto: IChangeProduct, email: string) {
-    try {
-      const user = await this.authDataService.findUser(email);
+  async changeProduct(changeProductDto: IChangeProduct, userData: IFindUser) {
+      const user = await this.authDataService.findUser(userData);
       if (user.roleId === 1 && user.id === changeProductDto.authorId) {
-        console.log("Product successfully updated");
-        const changedProduct = await this.catalogDataService.changeProduct(changeProductDto);
-        return changedProduct; // Return the updated product if needed
+        await this.catalogDataService.changeProduct(changeProductDto);
+      }else{
+        throw new BadRequestException("Error changing products")
       }
-      else{
-        throw new Error
-      }
-    } catch (error) {
-      console.error("Error updating product: ", error);
-      throw error;
-    }
+    
   }
 
 
@@ -195,66 +195,68 @@ export class CatalogService {
   // }
 
 
-  async deleteProduct(deleteProductDto: DeleteProductDto, email: string) {
-    try {
-      const user = await this.authDataService.findUser(email);
-      if (user.roleId == 1 && user.id === deleteProductDto.authorId) {
-        const deletedProduct = await this.catalogDataService.deleteProduct(deleteProductDto)
+  async deleteProduct(deleteProductDto: DeleteProductDto, user: IFindUser) {
+    
+    const userData = {
+      id: user.uid
+    }
+    const foundedUser = await this.authDataService.findUser(userData)
+      console.log("user found", foundedUser)
+      this.checkForUser(foundedUser)
+      this.checkAdminRole(foundedUser)
+      if (foundedUser.roleId == 1 && foundedUser.id === deleteProductDto.authorId) {
+        await this.catalogDataService.deleteProduct(deleteProductDto)
+      }else {
+        throw new BadRequestException()
       }
-    } catch (error) {
-      throw new Error(error)
-    }
   }
 
-  async getCategories(user) {
-    try {
-      const categories = await this.catalogDataService.getCategories(user.id)
+  async getCategories(user: IFindUser): Promise<IGetCategoriesDataServiceResponse> {
+    const userData = {
+      id: user.uid
+    }
+    const foundedUser = await this.authDataService.findUser(userData)
+    this.checkForUser(foundedUser)
+    this.checkAdminRole(foundedUser)
+    const categories = await this.catalogDataService.getCategories(foundedUser.id)
+    console.log("categories", categories)
       return categories
-    } catch (error) {
-      throw new Error(error)
-    }
+    
   }
 
-  async createCategory(createCategoryDto: ICreateCategory, user) {
-    try {
+  async createCategory(createCategoryDto: ICreateCategory, user): Promise<any> {
       const existingCategory= await this.catalogDataService.findCategory(createCategoryDto.name);
 
       if (existingCategory && existingCategory.Users.find(u => u.userId === user.id)) {
-        return {
-          status: 400,
-          message: 'Category with this name already exists',
-        };
+        throw new BadRequestException("Category with this name already exists")
+      }else{
+        await this.catalogDataService.createCategory(createCategoryDto, user.id);
       }
 
-      const newCategory = await this.catalogDataService.createCategory(createCategoryDto, user.id);
-      
-
-      return {
-        status: 201,
-        data: newCategory,
-      };
-    } catch (error) {
-      console.error(error);
-      return {
-        status: 500,
-        message: 'Internal Server Error',
-      };
-    }
   }
 
-  async deleteCategory(deleteCategoryDto: IDeleteCategory, email: string){
-    try {
-      const user = await this.authDataService.findUser(email);
-      if (user.roleId === 1){
-      const deletedCategory = await this.catalogDataService.deleteCategory(deleteCategoryDto, user.id)
-      }
-    } catch (error) {
-      throw new Error(error)
+  async deleteCategory(deleteCategoryDto: IDeleteCategory, user: IFindUser){
+    const userData = {
+      id: user.uid
     }
+    const foundedUser = await this.authDataService.findUser(userData)
+    this.checkForUser(foundedUser)
+    this.checkAdminRole(foundedUser)
+
+    try { (foundedUser.roleId === 1)
+     await this.catalogDataService.deleteCategory(deleteCategoryDto, foundedUser.id)
+    }catch (error){
+      throw new Error ("Error deleting category")
+    }  
   }
 
-  async getMaxOrder(categoryId, authorId){
+  async getMaxOrder(categoryId, authorId): Promise<number>{
     const maxOrder = await this.catalogDataService.findMaxOrder(categoryId, authorId)
-    return maxOrder
+    if (maxOrder){
+      return maxOrder
+    }else{
+      throw new BadRequestException("Error getting maxOrder")
+    }
+    
   }
 }

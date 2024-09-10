@@ -18,7 +18,7 @@ describe('OrdersService', () => {
     service = module.get<OrdersService>(OrdersService);
   });
 
-  it('should be defined', () => {
+  it('should be defined', async() => {
     expect(service).toBeDefined();
   });
 });

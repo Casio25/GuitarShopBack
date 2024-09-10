@@ -6,14 +6,16 @@ import { AuthService } from '../../Services/auth/auth.service';
 import { CreateAuthDto } from '../../Dto/auth/create-auth.dto';
 import { UpdateAuthDto } from '../../Dto/auth/update-auth.dto';
 import { ForgotPasswordDto } from '../../Dto/auth/ForgotPassword.dto';
+import { IUserRequest } from '@src/utils/interface/requestInterface';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  signUp(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.createAuth(createAuthDto);
+  @HttpCode(201)
+  async signUp(@Body() createAuthDto: CreateAuthDto) {
+    await this.authService.createAuth(createAuthDto);
   }
   @HttpCode(HttpStatus.OK)
    @Post("sign_in")
@@ -40,20 +42,23 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Patch("update")
-  update(@Request() req, @Body() updateAuthDto: UpdateAuthDto){
+  update(@Request() req , @Body() updateAuthDto: UpdateAuthDto){
     return this.authService.update(req.user, updateAuthDto)
   }
-  @UseGuards(AuthGuard)
-  @Get("one_time_token")
-  async oneTimeToken(@Request() req){
-  const resp = await this.authService.oneTimeToken(req.user)
-    return new SignInRespDTO(resp)
-  }
-
+  
   @Post("create_permission")
   createPermission(){
     return this.authService.createPermission()
   }
+  @UseGuards(AuthGuard)
+  @Get("get_profile")
+  @HttpCode(200)
+  async getProfile(@Request() request){
+    const response = await this.authService.getProfileData(request.user)
+    console.log("controller response", response)
+    return response
+  }
+
   
   // @Post("verify")
   // verifyEmail(@Body() verifyAuthDto: VerifyAuthDto){

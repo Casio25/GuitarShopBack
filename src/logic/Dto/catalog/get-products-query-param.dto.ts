@@ -18,15 +18,17 @@ class PriceDto {
 
 
 export class GetProductsQueryParamDto {
-    // @Min(0)
-    // @IsNumber()
-    // @Type(() => Number)
-    // skip: number;
+    @Min(0)
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    skip: number;
 
-    // @Min(1)
-    // @IsNumber()
-    // @Type(() => Number)
-    // take: number;
+    @Min(1)
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    take: number;
 
 
     @IsOptional()

@@ -17,7 +17,7 @@ model User {
   id               Int     @id @default(autoincrement())
   firstName        String
   secondName       String?
-  email            String
+  email            String @unique
   password         String
   phoneNumber      String?
   isEmailConfirmed Boolean @default(false)
@@ -58,7 +58,8 @@ model Order {
   authorId Int
   totalPrice Int
   payment Payment[]
-  venue   Venue[]
+  venueId    Int
+  venue      Venue    @relation(fields: [venueId], references: [id])
   products ProductOnOrder[]
 }
 

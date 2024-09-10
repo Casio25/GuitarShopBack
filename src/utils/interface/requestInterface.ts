@@ -3,10 +3,8 @@ export interface IRequest {
   userEmail: string;
 }
 export interface IOrdersRequest{
-  user: IUser;
+  user: IUserRequest;
 }
-export interface IUser {
-  email: string;
-  id: number;
-  role: string;
+export interface IUserRequest {
+  uid: number
 }

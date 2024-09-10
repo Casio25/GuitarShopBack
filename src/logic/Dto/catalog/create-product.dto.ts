@@ -1,7 +1,7 @@
 import { IsString, IsInt, IsNotEmpty, IsBoolean, IsArray } from "@nestjs/class-validator";
-import { ICreateProductResponse } from "src/utils/interface/ProductInterface";
+import {  ICreateProductResponse, IGetProductsDataServiceResponse, IGetProductsResponse} from "@src/utils/interface/ProductInterface";
 import { IsIn, IsOptional } from "class-validator";
-import { Type } from "class-transformer";
+import { Exclude, Expose, Type } from "class-transformer";
 
 export class CreateProductDto {
     @IsNotEmpty()
@@ -77,6 +77,8 @@ export class BaseResponseDto<T> {
         Object.assign(this, obj);
     }
 }
+
+
 export class CreateProductResData{
     @IsInt()
     @IsNotEmpty()
@@ -110,9 +112,8 @@ export class CreateProductResData{
     inStock: boolean;
 }
 
-export class CreateProductResDTO implements ICreateProductResponse {
+export class CreateProductResDTO extends BaseResponseDto<ICreateProductResponse> implements ICreateProductResponse {
     @IsOptional()
-    @Type(() => CreateProductResData)
     data?: CreateProductResData;
 
     @IsInt()
@@ -121,4 +122,53 @@ export class CreateProductResDTO implements ICreateProductResponse {
     @IsString()
     @IsOptional()
     error?: string;
+}
+
+export class GetProductsResponseDTO extends BaseResponseDto<IGetProductsResponse> implements IGetProductsResponse {
+    categories: Category[];
+    orders: Order[];
+    
+    @IsInt()
+    @IsNotEmpty()
+    @Expose()
+    id: number;
+
+    @IsNotEmpty()
+    @IsString()
+    @Exclude()
+    name: string;
+
+
+    @IsInt()
+    @IsNotEmpty()
+    @Expose()
+    authorId: number;
+
+    @IsInt()
+    @IsNotEmpty()
+    @Expose()
+    price: number;
+
+    @IsString()
+    @Expose()
+    photo: string;
+
+    @IsString()
+    @Expose()
+    description: string;
+
+    @IsBoolean()
+    @IsNotEmpty()
+    @Expose()
+    visibility: boolean;
+
+    @IsBoolean()
+    @IsNotEmpty()
+    @Expose()
+    inStock: boolean;
+}
+
+export class GetArrayOfProductsResponseDto extends BaseResponseDto<IGetProductsDataServiceResponse>{
+    count: number
+    data: GetProductsResponseDTO[]
 }

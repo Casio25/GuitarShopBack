@@ -1,7 +1,6 @@
 /* eslint-disable prettier/prettier */
 export class JwtPayload {
-  username: string;
-  email: string;
+  uid: number;
   iat?: number;
   exp?: number;
 

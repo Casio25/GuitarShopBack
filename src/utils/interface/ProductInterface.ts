@@ -55,6 +55,19 @@ export interface IGetProducts {
     string: string
 }
 
+export interface IGetProductsResponse {
+    id: number
+    authorId: number
+    name: string
+    photo: string
+    description: string
+    price: number
+    visibility: boolean
+    inStock: boolean
+    categories: Category[]
+    orders: Order[]
+}
+
 export interface Order{
     id: number,
     order: number
@@ -90,4 +103,9 @@ export interface IProductAuth {
 export interface IDeleteProduct {
     id: number,
     authorId: number
+}
+
+export interface IGetProductsDataServiceResponse {
+    count: number,
+    data: IGetProductsResponse[]
 }

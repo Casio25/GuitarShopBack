@@ -9,3 +9,7 @@ export interface ISignAuth {
     email: string;
     password: string;
 }
+
+export interface IUpdateAuth {
+    email: string
+}

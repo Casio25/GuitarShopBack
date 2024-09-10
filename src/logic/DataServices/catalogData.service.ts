@@ -1,13 +1,12 @@
-import { IGetProducts } from './../../utils/interface/ProductInterface';
+import { IGetProducts, IGetProductsDataServiceResponse } from '../../utils/interface/ProductInterface';
 
-import { ICreateProduct, IProductAuth, IChangeProduct, IDeleteProduct, IReorderProduct } from 'src/utils/interface/ProductInterface';
+import { ICreateProduct, IProductAuth, IChangeProduct, IDeleteProduct, IReorderProduct } from '@src/utils/interface/ProductInterface';
 import { CreateProductDto } from 'src/logic/Dto/catalog/create-product.dto';
 import { ConsoleLogger, Injectable, Req } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
-import { ICreateCategory } from 'src/utils/interface/categoryInterface';
+import { ICreateCategory, IGetCategoriesDataServiceResponse } from '@src/utils/interface/categoryInterface';
 import { Console } from 'console';
-
 
 interface IQueryParams {
 
@@ -44,10 +43,9 @@ export interface Product {
 @Injectable()
 export class CatalogDataService {
     constructor(private prisma: PrismaService) {}
-    async createProduct(product: ICreateProduct, authorId: number): Promise<any> {
+    async createProduct(product: ICreateProduct, authorId: number) {
         try {
-            // Create the product
-            console.log("product from front", product);
+            
             const newProduct = await this.prisma.product.create({
                 data: {
                     authorId: authorId,
@@ -88,7 +86,7 @@ export class CatalogDataService {
 
             console.log("Product updated with orders.");
 
-            return newProduct;
+            
         } catch (error) {
             console.error('Error creating product:', error);
             throw error;
@@ -120,24 +118,34 @@ export class CatalogDataService {
     }
 
 
-    async getProducts(where: any): Promise<any> {
+    async getProducts(where: any, skip?: number, take?: number): Promise<IGetProductsDataServiceResponse> {
         try {
             const productWhereClause: any = { ...where };
 
             if (productWhereClause.ids) {
                 productWhereClause.id = { in: productWhereClause.ids };
-                delete productWhereClause.ids; // Remove 'ids' since it's now part of 'id' filter
+                delete productWhereClause.ids; 
             }
-
+            if (!skip){
+                skip = 0
+            }
+            if (!take){
+                take = 100
+            }
+            const count = await this.prisma.product.count({
+                where: productWhereClause,
+            })
             const products = await this.prisma.product.findMany({
+                skip: skip,
+                take: take,
                 where: productWhereClause,
                 include: {
                     categories: true,
-                    orders: true // Ensure that the 'orders' property is included in the query
+                    orders: true 
                 }
             });
 
-            return products;
+            return {count, data: products}
         } catch (error) {
             throw error;
         }
@@ -160,10 +168,8 @@ export class CatalogDataService {
                     },
                     // Filtering products based on the category ID
                     categories: {
-                        // Assuming you have the category ID available in your product object
-                        // Change it accordingly if you're filtering by some other condition
                         some: {
-                            id: product.categories[0].id // Assuming there's only one category in the 'categories' array
+                            id: product.categories[0].id 
                         }
                     }
                 },
@@ -206,7 +212,7 @@ export class CatalogDataService {
                     }
                 })
             ));
-            // Update the product details
+            
             const updatedProduct = await this.prisma.product.update({
                 where: {
                     id: product.id
@@ -242,6 +248,12 @@ export class CatalogDataService {
                     }
                 }
             });
+
+            await this.prisma.product.deleteMany({
+                where: {categories: {
+                    none: {}
+                }}
+            })
 
             return  updatedProduct
         } catch (error) {
@@ -355,7 +367,6 @@ export class CatalogDataService {
 
     async deleteCategory(category, authorId){
         try {
-            console.log(category)
              await this.prisma.category.delete({
                 where: {
                     id: category.id
@@ -391,7 +402,7 @@ export class CatalogDataService {
     async createCategory(category: ICreateCategory, authorId) {
         
         try {
-            const createCategory = await this.prisma.category.create({
+            await this.prisma.category.create({
                 data: {
                     name: category.name,
                     Users: {
@@ -399,7 +410,7 @@ export class CatalogDataService {
                     }
                 }
             })
-            return createCategory
+            
         } catch (error) {
             throw error;
         }
@@ -429,8 +440,26 @@ export class CatalogDataService {
     }
 
 
-    async getCategories(authorId: number) {
+    async getCategories(authorId: number): Promise<IGetCategoriesDataServiceResponse>{
         try {
+            const count = await this.prisma.category.count({
+                where: {
+                    OR: [
+                        {
+                            Users: {
+                                some: {
+                                    userId: authorId
+                                }
+                            }
+                        },
+                        {
+                            Users: {
+                                none: {}
+                            }
+                        }
+                    ]
+                }
+            })
             const categories = await this.prisma.category.findMany({
                 where: {
                     OR: [
@@ -449,7 +478,7 @@ export class CatalogDataService {
                     ]
                 }
             });
-            return categories;
+            return {count, data: categories};
         } catch (error) {
             throw new Error(error);
         }

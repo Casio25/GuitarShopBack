@@ -53,9 +53,9 @@ describe('AuthController', () => {
       phoneNumber: "123456789",
       isEmailConfirmed: false,
       roleId: 1, }; 
-    jest.spyOn(authController, 'signUp').mockResolvedValue(result);
+    jest.spyOn(authController, 'signUp').mockResolvedValue(undefined);
 
-    expect(await authController.signUp(createAuthDto)).toBe(result);
+    expect(await authController.signUp(createAuthDto));
     expect(authController.signUp).toHaveBeenCalledWith(createAuthDto);
   });
 

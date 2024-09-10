@@ -3,29 +3,40 @@ import { ForgotPasswordDto } from '../../Dto/auth/ForgotPassword.dto';
 import { AuthDataService } from '../../DataServices/authData.service';
 /* eslint-disable prettier/prettier */
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ICreateAuth, ISignAuth } from '../../../utils/interface/authInterface';
-import { Injectable } from '@nestjs/common';
+import { ICreateAuth, ISignAuth, IUpdateAuth } from '../../../utils/interface/authInterface';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthDto } from '../../Dto/auth/create-auth.dto';
 import { ISignInResponse, SignInAuthDto } from '../../Dto/auth/signin-auth.dto';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JwtPayload } from 'src/utils/interface/jwtpayloadInterface';
+import { JwtPayload } from '@src/utils/interface/jwtpayloadInterface';
 import { User } from '@prisma/client';
 import * as nodemailer from 'nodemailer';
 import { IMailOption } from "../../../utils/interface/mailInterface";
-import { JwtService } from '@nestjs/jwt';
-import { IUser } from 'src/utils/interface/IUser';
-import { IForgotPassword } from 'src/utils/interface/IForgotPassword';
+import { JwtService } from '@nestjs/jwt'
+import { IForgotPassword } from '@src/utils/interface/IForgotPassword';
+import { IRequest, IUserRequest } from '@src/utils/interface/requestInterface';
+import { IUser } from '@src/utils/interface/IUser';
 
 @Injectable()
 export class AuthService {
   private authors: (CreateAuthDto | SignInAuthDto)[] = [];
   constructor(private authDataService: AuthDataService,
               private jwtService: JwtService){}
+  private checkAdminRole(user: IUser) {
+    if (user.roleId !== 1) {
+      throw new UnauthorizedException("Access denied")
+    }
+  }
+  private checkForUser(user: IUser) {
+    if (!user) {
+      throw new NotFoundException("User not found")
+    }
+  }
   //creating new user
   async createAuth(createAuthDto: ICreateAuth) {
     try {
-      const user = await this.authDataService.findUser(createAuthDto.email)
+      const user = await this.authDataService.findUser(createAuthDto)
       if (user) {
         throw new Error("User already exists")
       }
@@ -39,16 +50,15 @@ export class AuthService {
         .catch((error) => {
           console.log('User registered, but email sending failed:', error);
         });
-      return newUser  
+       
     } catch (error) {
-      console.error('Error creating user:', error.message);
-      throw new Error ("Error creating new user")
+      throw new BadRequestException("Error creating user", error)
     }
   }
 
   async resendEmail(forgotPasswordDto: IForgotPassword): Promise<any> {
     console.log("resend email user email: ", forgotPasswordDto.email)
-    const user = await this.authDataService.findUser(forgotPasswordDto.email);
+    const user = await this.authDataService.findUser(forgotPasswordDto);
     try {
       if (user?.email !== forgotPasswordDto.email) {
         throw new Error("User with this email doesn't exist")
@@ -64,7 +74,7 @@ export class AuthService {
         });
   }catch (error){
     console.error("Error resending email: ", error.message);
-    throw new Error ("Error resending email: ")
+    throw new BadRequestException ("Error resending email: ", error)
   }
 }
 
@@ -101,49 +111,34 @@ export class AuthService {
   }
 
   async signIn(signInAuthDto: ISignAuth): Promise<ISignInResponse> {
-    const user = await this.authDataService.findUser(signInAuthDto.email);
-    try{
-
-    if (!user || user?.email !== signInAuthDto.email) {
-       throw new Error("User with this email doesn't exist")
+    const user = await this.authDataService.findUser(signInAuthDto);
+    
+    if (!user) {
+      throw new BadRequestException("User with this email doesn't exist");
     }
 
     const isPasswordValid = user.password === signInAuthDto.password;
     if (!isPasswordValid) {
-      throw new Error("Wrong password");
+      throw new BadRequestException("Wrong password");
       
     }
 
     const { password, ...result } = user;
-    const payload = { id: user.id, email: user.email };
+    const payload = { uid: user.id};
 
     return {
       access_token: await this.jwtService.signAsync(payload)
     };
-  }catch(error){
-      console.error('Error logging in:', error.message);
-      throw new Error("Error logging in")
-  }
   }
 
-  //onetimejwttoken generation
-  async oneTimeToken(req: any){
-    const user = await this.authDataService.findUser(req.email);
 
-    const { password, ...result } = user;
-    const payload = { id: user.id, email: user.email };
-    return {
-      access_token: await this.jwtService.signAsync(payload)
-    };
-  }
 
 
   async forgotPassword(forgotPasswordDto: IForgotPassword): Promise<any> {
-    const user = await this.authDataService.findUser(forgotPasswordDto.email);
+    const user = await this.authDataService.findUser(forgotPasswordDto);
     try {
-      if (user?.email !== forgotPasswordDto.email) {
-        throw new Error("User with this email doesn't exist")
-      }
+      this.checkForUser(user)
+      
       const payload = { email: user.email }
       const jwtToken = await this.jwtService.signAsync(payload);
       await this.forgotPasswordEmail(forgotPasswordDto.email, jwtToken)
@@ -160,10 +155,11 @@ export class AuthService {
   }
 
 
-  async update(req: any, updateAuthDto: UpdateAuthDto) {
+  async update(req: IUserRequest, updateAuthDto: UpdateAuthDto) {
     console.log(updateAuthDto)
     const allowedFields = ['email', 'firstName', 'secondName', 'isEmailConfirmed', 'password', 'phoneNumber', 'role'];
     const where: any = {};
+    
 
     allowedFields.forEach(field => {
       if (updateAuthDto[field] !== undefined) {
@@ -172,36 +168,30 @@ export class AuthService {
     });
 
     try {
-      const user = await this.authDataService.findUser(req.email);
-
-      if (!user) {
-        throw new Error("User doesn't exist");
-      }
-      await this.authDataService.update(user, where);
+      
+      
+      await this.authDataService.update(where);
 
       
     } catch (error) {
-      throw error ("Error updating user");
+      throw new BadRequestException ("Error updating user", error);
     }
   }
 
-  async verify(req: any) {
+  async verify(req: IUserRequest) {
     try {
-      const user = await this.authDataService.findUser(req.email);
+      const user = req.uid
+      
 
-      if (!user) {
-        throw new Error("User doesn't exist");
-      }
-
-      const where: any = {
+      const data: any = {
         isEmailConfirmed: true
       }
 
-      await this.authDataService.update(user, where);
+      await this.authDataService.verify(user);
 
       
     } catch (error) {
-      throw error ("Error verifying user");
+      throw new BadRequestException ("Error verifying user", error);
     }
   }
 
@@ -244,6 +234,16 @@ export class AuthService {
 
   async createPermission(){
     return this.authDataService.createRoleAndPermissions()
+  }
+
+  async getProfileData(user: IUserRequest){
+    const userData = {
+      id: user.uid
+    }
+    console.log("userData to get profile", userData)
+    const response = await this.authDataService.findUser(userData)
+    console.log("response", response)
+    return response
   }
 
 

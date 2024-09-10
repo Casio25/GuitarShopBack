@@ -1,10 +1,11 @@
-import { OrdersModule } from './../../logic/Modules/orders/orders.module';
+import { OrdersModule } from '../../logic/Modules/orders/orders.module';
 export interface CreateOrderInterface {
     orderId: number;
     creatAt: string;
     orderStatus: OrderStatus;
     products: Product[];
     payment: Payment;
+    venueId: number
 }
 
 export interface Payment {

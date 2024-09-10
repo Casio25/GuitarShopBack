@@ -7,14 +7,14 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './logic/Modules/auth/auth.module';
 import { AuthGuard, CustomAuthGuard } from './auth/auth.guard';
-import { UserModule } from './logic/Modules/user/user.module';
 import { FirebaseModule } from './logic/Modules/firebase/firebase.module';
-import { PhotoController } from './logic/Controllers/photo/photo.controller';
 import { PhotoService } from './logic/Services/photo/photo.service';
 import { OrdersModule } from './logic/Modules/orders/orders.module';
+import { UtilsModule } from './logic/Modules/utils/utils.module';
+
 
 @Module({
-  imports: [CatalogModule, PrismaModule, AuthModule, UserModule, ConfigModule.forRoot({ cache: true }), OrdersModule],
+  imports: [CatalogModule, PrismaModule, AuthModule, ConfigModule.forRoot({ cache: true }), OrdersModule, UtilsModule],
   controllers: [AppController],
   providers: [AppService, AuthGuard, CustomAuthGuard],
 })

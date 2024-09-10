@@ -1,15 +1,23 @@
 
 import { ConsoleLogger, Injectable, Req } from '@nestjs/common';
+import { IGetOrdersDataServiceResponse } from '@src/utils/interface/IGetOrder';
+import { CreateOrderVenue, GetOrderVenue, IGetOrdersResponse } from '@src/utils/interface/orderInterface';
+import { connect } from 'http2';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateOrderInterface, OrderProducts, Product } from 'src/utils/interface/createOrderInterface';
-import { UpdateOrderInterface } from 'src/utils/interface/updateOrderInterface';
+import { CreateOrderInterface, OrderProducts, Product } from '@src/utils/interface/createOrderInterface';
+import { UpdateOrderInterface } from '@src/utils/interface/updateOrderInterface';
 
 
 @Injectable()
 export class OrderDataService {
     constructor(private prisma: PrismaService) { }
-    async findAll(authorId){
+    async findAll(authorId): Promise<any>{
         try{
+            const count = await this.prisma.order.count({
+                where:{
+                    authorId: authorId
+                }
+            })
             const orders = await this.prisma.order.findMany({
                 where:{
                 authorId: authorId
@@ -17,10 +25,12 @@ export class OrderDataService {
                 include: {
                     payment: true,
                     venue: true,
-                    products: true
+                    products: true,
                 }
             })
-            return orders
+            
+            console.log("orers", orders)
+            return {count, data: orders}
         } catch (error) {
             console.error('Error getting orders:', error);
             throw error;
@@ -31,7 +41,12 @@ export class OrderDataService {
         try {
             const newOrder = await this.prisma.order.create({
                 data: {
-                    authorId: authorId,
+                    author: {
+                        connect: { id: authorId }
+                    },
+                    venue: {
+                        connect: { id: createOrderDto.venueId }
+                    },
                     orderId: createOrderDto.orderId,
                     creatAt: createOrderDto.creatAt,
                     orderStatus: createOrderDto.orderStatus,
@@ -52,14 +67,17 @@ export class OrderDataService {
                             
                         })),
                         
-                    }
+                    },
+                    
+                    
                 },
+                
                 include: {
                     payment: true,
-                    products: true // Include the products relation in the returned order object
-                }
+                    products: true,
+                    venue: true // Include the products relation in the returned order object
+                },
             });
-
             return newOrder;
         } catch (error) {
             console.error('Error creating order:', error);
@@ -120,5 +138,22 @@ export class OrderDataService {
         }
     }
 
+    async createVenue(VenueData: CreateOrderVenue, authorId: number){
+        try{
+            const newVenue = await this.prisma.venue.create({
+                data: {
+                    name: VenueData.name,
+                    users: {
+                        connect: {
+                            id: authorId
+                        }
+                    }
+                }
+            })
+            return newVenue
+        }catch(error){
+            console.error ("Error creating new venue", error)
+        }
+    }
 
 }
