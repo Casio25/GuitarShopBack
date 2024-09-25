@@ -8,7 +8,7 @@ export class UtilsService {
     return 'This action adds a new util';
   }
 
-  uploadPhoto (file){
+  uploadPhoto (file: string){
     
   }
 

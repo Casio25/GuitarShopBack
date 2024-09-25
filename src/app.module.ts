@@ -7,15 +7,15 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './logic/Modules/auth/auth.module';
 import { AuthGuard, CustomAuthGuard } from './auth/auth.guard';
-import { FirebaseModule } from './logic/Modules/firebase/firebase.module';
-import { PhotoService } from './logic/Services/photo/photo.service';
 import { OrdersModule } from './logic/Modules/orders/orders.module';
 import { UtilsModule } from './logic/Modules/utils/utils.module';
+import { AzureBlobService } from './logic/Services/azure-blob/azure-blob.service';
+
 
 
 @Module({
   imports: [CatalogModule, PrismaModule, AuthModule, ConfigModule.forRoot({ cache: true }), OrdersModule, UtilsModule],
   controllers: [AppController],
-  providers: [AppService, AuthGuard, CustomAuthGuard],
+  providers: [AppService, AuthGuard, CustomAuthGuard, AzureBlobService],
 })
 export class AppModule {}

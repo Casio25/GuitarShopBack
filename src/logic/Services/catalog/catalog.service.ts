@@ -15,6 +15,7 @@ import { DeleteProductDto } from 'src/logic/Dto/catalog/delete-product.dto';
 import { IOrdersRequest, IUserRequest } from '@src/utils/interface/requestInterface';
 import { User } from '@prisma/client';
 import { IFindUser } from '@src/utils/interface/IUser';
+import { AzureBlobService } from '../azure-blob/azure-blob.service';
 
 const fs = require("fs");
 const catalogData = fs.readFileSync('catalog.txt', 'utf-8');
@@ -53,9 +54,11 @@ export interface Category {
 
 @Injectable()
 export class CatalogService {
+  private containerName = "photos"
   private catalogOffers = catalogData;
   constructor(private catalogDataService: CatalogDataService,
-    private authDataService: AuthDataService) { }
+    private authDataService: AuthDataService,
+    private azureBlobServie: AzureBlobService) { }
 
   private checkAdminRole(user: User){
     console.log("user", user.roleId)
@@ -85,6 +88,7 @@ export class CatalogService {
       if (existingProduct && existingProduct.authorId === foundedUser.id) {
         throw new BadRequestException("Product with this name already exists")
       } else {
+        const photoLink = await this. azureBlobServie.upload(createProductDto.photo, this.containerName)
         const newProduct = await this.catalogDataService.createProduct(createProductDto, foundedUser.id);
         console.log("new product", newProduct);
       }
