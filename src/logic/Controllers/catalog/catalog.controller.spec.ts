@@ -48,7 +48,7 @@ describe('CatalogController', () => {
   it("should create product", async ()=> {
     const request = {
       user: {
-        uid: 1,
+        id: 1,
         email: "emailTest",
         roleId: 1
       }
@@ -85,7 +85,7 @@ describe('CatalogController', () => {
   it ("should create category", async() => {
     const request = {
       user: {
-        uid: 1,
+        id: 1,
         email: "emailTest",
         roleId: 1
       }
@@ -118,7 +118,7 @@ describe('CatalogController', () => {
     }
     const request = {
       user: {
-        uid: 1,
+        id: 1,
         email: "emailTest",
         roleId: 1
       }
@@ -152,7 +152,7 @@ describe('CatalogController', () => {
   it ("should return categories", async() => {
     const request = {
       user: {
-        uid: 1,
+        id: 1,
         email: "emailTest",
         roleId: 1
       }
@@ -172,7 +172,7 @@ describe('CatalogController', () => {
   it ("should return max order", async() => {
     const request = {
       user: {
-        uid: 1,
+        id: 1,
         email: "emailTest",
         roleId: 1
       }
@@ -191,7 +191,7 @@ describe('CatalogController', () => {
   it ("should change product", async() => {
     const request = {
       user: {
-        uid: 1,
+        id: 1,
         email: "emailTest",
         roleId: 1
       }
@@ -226,7 +226,7 @@ describe('CatalogController', () => {
   it ("should delete product", async() => {
     const request = {
       user: {
-        uid: 1,
+        id: 1,
         email: "emailTest",
         roleId: 1
       }
@@ -260,7 +260,7 @@ describe('CatalogController', () => {
     }
     const request = {
       user: {
-        uid: 1,
+        id: 1,
         email: "emailTest",
         roleId: 1
       }

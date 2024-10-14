@@ -7,7 +7,7 @@ import { CreateOrderInterface } from '@src/utils/interface/createOrderInterface'
 import { CreateOrderVenue, GetOrderVenue, IGetOrdersResponse } from '@src/utils/interface/orderInterface';
 import { IGetOrdersDataServiceResponse } from '@src/utils/interface/IGetOrder';
 import { IUserRequest } from '@src/utils/interface/requestInterface';
-import { IDataServiceUser, IFindUser } from '@src/utils/interface/IUser';
+import { IDataServiceUser } from '@src/utils/interface/IUser';
 import { User } from '@prisma/client';
 
 @Injectable()
@@ -47,10 +47,10 @@ export class OrdersService {
 
     const productIds = createOrderDto.products.map(product => product.productId);
     console.log("productIds", productIds)
-    console.log("user.id")
+    console.log("user.uid")
       const allProducts = await this.catalogDataService.getProducts({
         id: { in: productIds },
-        authorId: user.id
+        authorId: user.uid
       });
      if (allProducts.data.length === 0){
        throw new Error('Wrong product id or user id');
@@ -101,10 +101,10 @@ export class OrdersService {
 
       const productIds = updateOrderDto.products.map(product => product.productId);
       console.log("productIds", productIds)
-      console.log("user.id")
+      console.log("user.uid")
       const allProducts = await this.catalogDataService.getProducts({
         id: { in: productIds },
-        authorId: user.id
+        authorId: user.uid
       });
       if (allProducts.data.length === 0) {
         throw new Error('Wrong product id or user id');
@@ -143,11 +143,11 @@ export class OrdersService {
     }
   }
 
-  async createVenue(newVenue: CreateOrderVenue, user: IFindUser){
+  async createVenue(newVenue: CreateOrderVenue, user: IUserRequest){
     const userData = {
       id: user.uid
     }
-    const foundedUser = await this.authDataService.findUser(userData)
+    const foundedUser = await this.authDataService.findUser(user.email)
     this.checkForUser(foundedUser)
     this.checkAdminRole(foundedUser)
     try{

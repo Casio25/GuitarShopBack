@@ -14,7 +14,7 @@ import { ICreateCategory, ICreateCategoryDataResponse, ICreateCategoryResponse, 
 import { DeleteProductDto } from 'src/logic/Dto/catalog/delete-product.dto';
 import { IOrdersRequest, IUserRequest } from '@src/utils/interface/requestInterface';
 import { User } from '@prisma/client';
-import { IFindUser } from '@src/utils/interface/IUser';
+
 import { AzureBlobService } from '../azure-blob/azure-blob.service';
 
 const fs = require("fs");
@@ -75,11 +75,11 @@ export class CatalogService {
 
   
 
-  async createProduct(createProductDto: ICreateProduct, user: IFindUser): Promise<any> {
+  async createProduct(createProductDto: ICreateProduct, user: IUserRequest): Promise<any> {
     const userData = {
       id: user.uid
     }
-    const foundedUser = await this.authDataService.findUser(userData)
+    const foundedUser = await this.authDataService.findUser(user.email)
 
       this.checkForUser(foundedUser)
       this.checkAdminRole(foundedUser)
@@ -88,7 +88,7 @@ export class CatalogService {
       if (existingProduct && existingProduct.authorId === foundedUser.id) {
         throw new BadRequestException("Product with this name already exists")
       } else {
-        const photoLink = await this. azureBlobServie.upload(createProductDto.photo, this.containerName)
+        // const photoLink = await this. azureBlobServie.upload(createProductDto.photo, this.containerName)
         const newProduct = await this.catalogDataService.createProduct(createProductDto, foundedUser.id);
         console.log("new product", newProduct);
       }
@@ -98,12 +98,12 @@ export class CatalogService {
 
 
 
-  async getProducts(query: IQueryParams, user: IFindUser): Promise<IGetProductsDataServiceResponse> {
+  async getProducts(query: IQueryParams, user: IUserRequest): Promise<IGetProductsDataServiceResponse> {
     console.log("query", query); 
     const userData = {
       id: user.uid
     }
-    const foundedUser = await this.authDataService.findUser(userData)
+    const foundedUser = await this.authDataService.findUser(user.email)
     const where: any = {};
     let skip = 0;
     let take = 100
@@ -158,15 +158,15 @@ export class CatalogService {
    async getBiggerOrderProducts(product: IQueryParams, user) {
      try {
        // Check if the where object is correctly constructed
-       const products = await this.catalogDataService.getBiggerOrderProducts(product, user.id);
+       const products = await this.catalogDataService.getBiggerOrderProducts(product, user.uid);
        return products;
      } catch (error) {
        throw new BadRequestException("Error getting bigger order products: ", error);
      }
    }
 
-  async changeProduct(changeProductDto: IChangeProduct, userData: IFindUser) {
-      const user = await this.authDataService.findUser(userData);
+  async changeProduct(changeProductDto: IChangeProduct, userData: IUserRequest) {
+      const user = await this.authDataService.findUser(userData.email);
       if (user.roleId === 1 && user.id === changeProductDto.authorId) {
         await this.catalogDataService.changeProduct(changeProductDto);
       }else{
@@ -178,7 +178,7 @@ export class CatalogService {
 
   // async reorderProduct(reorderProductDto: IReorderProduct, user) {
   //   try {
-  //     if (user.role === "ADMIN" && user.id === reorderProductDto.authorId) {
+  //     if (user.role === "ADMIN" && user.uid === reorderProductDto.authorId) {
   //       const changedProduct = await this.catalogDataService.reorderProduct(reorderProductDto)
   //     }
   //   } catch (error) {
@@ -199,12 +199,12 @@ export class CatalogService {
   // }
 
 
-  async deleteProduct(deleteProductDto: DeleteProductDto, user: IFindUser) {
+  async deleteProduct(deleteProductDto: DeleteProductDto, user: IUserRequest) {
     
     const userData = {
       id: user.uid
     }
-    const foundedUser = await this.authDataService.findUser(userData)
+    const foundedUser = await this.authDataService.findUser(user.email)
       console.log("user found", foundedUser)
       this.checkForUser(foundedUser)
       this.checkAdminRole(foundedUser)
@@ -215,35 +215,38 @@ export class CatalogService {
       }
   }
 
-  async getCategories(user: IFindUser): Promise<IGetCategoriesDataServiceResponse> {
+  async getCategories(user: IUserRequest): Promise<IGetCategoriesDataServiceResponse> {
     const userData = {
       id: user.uid
     }
-    const foundedUser = await this.authDataService.findUser(userData)
+    const foundedUser = await this.authDataService.findUser(user.email)
     this.checkForUser(foundedUser)
     this.checkAdminRole(foundedUser)
+    console.log("founded user", foundedUser)
     const categories = await this.catalogDataService.getCategories(foundedUser.id)
     console.log("categories", categories)
       return categories
     
   }
 
-  async createCategory(createCategoryDto: ICreateCategory, user): Promise<any> {
+  async createCategory(createCategoryDto: ICreateCategory, user: IUserRequest): Promise<any> {
+    console.log (" user during creating category", user)
       const existingCategory= await this.catalogDataService.findCategory(createCategoryDto.name);
-
-      if (existingCategory && existingCategory.Users.find(u => u.userId === user.id)) {
+      console.log ('existingCategory info', existingCategory)
+      if (existingCategory && existingCategory.Users.find(u => u.userId === user.uid)) {
+        console.log("category already exists")
         throw new BadRequestException("Category with this name already exists")
       }else{
-        await this.catalogDataService.createCategory(createCategoryDto, user.id);
+        await this.catalogDataService.createCategory(createCategoryDto, user.uid);
       }
 
   }
 
-  async deleteCategory(deleteCategoryDto: IDeleteCategory, user: IFindUser){
+  async deleteCategory(deleteCategoryDto: IDeleteCategory, user: IUserRequest){
     const userData = {
       id: user.uid
     }
-    const foundedUser = await this.authDataService.findUser(userData)
+    const foundedUser = await this.authDataService.findUser(user.email)
     this.checkForUser(foundedUser)
     this.checkAdminRole(foundedUser)
 
@@ -254,13 +257,10 @@ export class CatalogService {
     }  
   }
 
-  async getMaxOrder(categoryId, authorId): Promise<number>{
+  async getMaxOrder(categoryId: number, authorId: number): Promise<number>{
     const maxOrder = await this.catalogDataService.findMaxOrder(categoryId, authorId)
-    if (maxOrder){
-      return maxOrder
-    }else{
-      throw new BadRequestException("Error getting maxOrder")
-    }
+    console.log(maxOrder)
+    return maxOrder
     
   }
 }

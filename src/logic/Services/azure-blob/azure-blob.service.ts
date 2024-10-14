@@ -32,8 +32,14 @@ export class AzureBlobService {
     async uploadStringPhoto (stringPhoto: string, containerName: string): Promise<string> {
         try {
             this.containerName = containerName;
-            const pdfUrl = uuid() + stringPhoto;\
-            
+            const buffer = Buffer.from(stringPhoto, 'base64'); 
+            const pdfUrl = uuid() + stringPhoto;
+            const blobClient = this.getBlobClient(pdfUrl)
+            await blobClient.uploadData(buffer);
+            return pdfUrl
+        } catch (error) {
+            console.error("Error uploading string photo: ", error);
+            throw new Error("Failed to upload string");
         }
     }
 

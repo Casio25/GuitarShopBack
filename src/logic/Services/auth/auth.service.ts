@@ -36,7 +36,7 @@ export class AuthService {
   //creating new user
   async createAuth(createAuthDto: ICreateAuth) {
     try {
-      const user = await this.authDataService.findUser(createAuthDto)
+      const user = await this.authDataService.findUser(createAuthDto.email)
       if (user) {
         throw new Error("User already exists")
       }
@@ -58,7 +58,7 @@ export class AuthService {
 
   async resendEmail(forgotPasswordDto: IForgotPassword): Promise<any> {
     console.log("resend email user email: ", forgotPasswordDto.email)
-    const user = await this.authDataService.findUser(forgotPasswordDto);
+    const user = await this.authDataService.findUser(forgotPasswordDto.email);
     try {
       if (user?.email !== forgotPasswordDto.email) {
         throw new Error("User with this email doesn't exist")
@@ -111,7 +111,7 @@ export class AuthService {
   }
 
   async signIn(signInAuthDto: ISignAuth): Promise<ISignInResponse> {
-    const user = await this.authDataService.findUser(signInAuthDto);
+    const user = await this.authDataService.findUser(signInAuthDto.email);
     
     if (!user) {
       throw new BadRequestException("User with this email doesn't exist");
@@ -135,7 +135,7 @@ export class AuthService {
 
 
   async forgotPassword(forgotPasswordDto: IForgotPassword): Promise<any> {
-    const user = await this.authDataService.findUser(forgotPasswordDto);
+    const user = await this.authDataService.findUser(forgotPasswordDto.email);
     try {
       this.checkForUser(user)
       
@@ -237,11 +237,8 @@ export class AuthService {
   }
 
   async getProfileData(user: IUserRequest){
-    const userData = {
-      id: user.uid
-    }
-    console.log("userData to get profile", userData)
-    const response = await this.authDataService.findUser(userData)
+    
+    const response = await this.authDataService.findUser(user.email)
     console.log("response", response)
     return response
   }

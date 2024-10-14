@@ -4,10 +4,7 @@ export interface IUser {
     email: string,
     roleId: number
 }
-export interface IFindUser {
-    uid?: number,
-    email?: string
-}
+
 
 export interface IDataServiceUser {
     id?: number,

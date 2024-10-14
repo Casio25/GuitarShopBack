@@ -7,4 +7,5 @@ export interface IOrdersRequest{
 }
 export interface IUserRequest {
   uid: number
+  email: string
 }

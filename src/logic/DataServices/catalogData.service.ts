@@ -358,10 +358,18 @@ export class CatalogDataService {
                     orders: true
                 }
             });
+            await Promise.all(productToDelete.orders.map(order =>
+                this.prisma.orderOfProduct.delete({
+                    where: {
+                        id: order.id
+                    }
+                })
+            ));
 
             console.log("Product, categories, and orders deleted successfully.");
         } catch (error) {
-            throw error;
+            console.error("Error deleting product")
+            throw new Error (error);
         }
     }
 
@@ -399,7 +407,7 @@ export class CatalogDataService {
     }
 
 
-    async createCategory(category: ICreateCategory, authorId) {
+    async createCategory(category: ICreateCategory, authorId: number) {
         
         try {
             await this.prisma.category.create({
@@ -493,10 +501,12 @@ export class CatalogDataService {
                 orderBy: { order: 'desc' },
             });
 
+
+            console.log("maxOrderProduct", maxOrderProduct ? maxOrderProduct.order : null)
             return maxOrderProduct ? maxOrderProduct.order : 0;
         } catch (error) {
-            console.error('Error finding max order:', error);
-            throw error;
+            console.error('Error finding max order:', error.message, error.stack);
+            throw new Error;
         }
     }
 

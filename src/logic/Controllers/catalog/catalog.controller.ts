@@ -35,6 +35,7 @@ export class CatalogController {
   @HttpCode(201)
   async createCategory(@Body() createCategoryDto: CreateCategoryDto, @Req() request: IOrdersRequest) {
     const user = request.user
+    console.log("controller create user", user)
     await this.catalogService.createCategory(createCategoryDto, user)
 
   }
@@ -51,10 +52,13 @@ export class CatalogController {
   @UseGuards(AuthGuard)
   @Post("get_max_order")
   @HttpCode(201)
-  getMaxOrder(@Body() getMaxOrder: GetMaxOrderDto, @Req() request: IOrdersRequest) {
+  async getMaxOrder(@Body() getMaxOrder: GetMaxOrderDto, @Req() request: IOrdersRequest) {
+    console.log ("Get Max Order Body: ", getMaxOrder)
     const userId = request.user.uid
+    console.log ("userId in getMAxOrder", userId)
     const categoryId = getMaxOrder.categoryId
-    return this.catalogService.getMaxOrder(categoryId, userId)
+    const maxOrder = await this.catalogService.getMaxOrder(categoryId, userId)
+    return maxOrder
   }
 
 

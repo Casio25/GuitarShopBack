@@ -79,7 +79,7 @@ describe('AuthService', () => {
       roleId: 2
     }
     const request = {
-      uid: 2,
+      id: 2,
       email: "trs",
 
     }
@@ -90,7 +90,7 @@ describe('AuthService', () => {
 
   it ("should verify user", async() => {
     const request = {
-      uid: 2,
+      id: 2,
       email: "trs",
 
     }

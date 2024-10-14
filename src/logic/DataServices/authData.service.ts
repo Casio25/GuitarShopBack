@@ -1,12 +1,10 @@
-import { IDataServiceUser, IFindUser } from '../../utils/interface/IUser';
-import { IsNotEmpty } from '@nestjs/class-validator';
+
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User, Role } from '@prisma/client';
 import { ICreateAuth } from '../../utils/interface/authInterface';
-import { IUser } from '@src/utils/interface/IUser';
-import { UserDataService } from './userData.service';
+
 
 
 interface IUpdateData {
@@ -26,12 +24,12 @@ export class AuthDataService {
 
     // Check if user with the same email already exists
 
-    async findUser(userServiceData: IDataServiceUser): Promise<User | null> {
+    async findUser(email: string): Promise<User | null> {
         try {
-            const userData: IDataServiceUser = {...userServiceData}
-            console.log("userData", userData)
             const user =  await this.prisma.user.findFirst({
-                where: userData
+                where: {
+                    email
+                }
             });
             return user || null
         }
