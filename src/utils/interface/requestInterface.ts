@@ -4,6 +4,7 @@ export interface IRequest {
 }
 export interface IOrdersRequest{
   user: IUserRequest;
+  body: any
 }
 export interface IUserRequest {
   uid: number

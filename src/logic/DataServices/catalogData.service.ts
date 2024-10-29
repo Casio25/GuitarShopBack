@@ -43,14 +43,14 @@ export interface Product {
 @Injectable()
 export class CatalogDataService {
     constructor(private prisma: PrismaService) {}
-    async createProduct(product: ICreateProduct, authorId: number) {
+    async createProduct(product: ICreateProduct, authorId: number, photoLink: string) {
         try {
             
             const newProduct = await this.prisma.product.create({
                 data: {
                     authorId: authorId,
                     name: product.name,
-                    photo: product.photo,
+                    photo: photoLink,
                     price: product.price,
                     description: product.description,
                     visibility: product.visibility,

@@ -1,7 +1,7 @@
 import { IOrdersRequest } from '@src/utils/interface/requestInterface';
 /* eslint-disable prettier/prettier */
 import { CatalogService } from '../../Services/catalog/catalog.service';
-import { Body, Controller, Get, Post, Patch, Query, UseGuards, Req, Res, Delete, HttpCode } from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, Query, UseGuards, Req, Res, Delete, HttpCode, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { offers } from '../../../data/CatalogData.js';
 import { CreateProductDto, CreateProductResData, CreateProductResDTO, GetArrayOfProductsResponseDto, GetProductsResponseDTO } from 'src/logic/Dto/catalog/create-product.dto';
 import { AuthGuard, CustomAuthGuard, OneTimeAuthGuard } from 'src/auth/auth.guard';
@@ -13,6 +13,7 @@ import { DeleteProductDto } from 'src/logic/Dto/catalog/delete-product.dto';
 import { ReorderProductDto } from 'src/logic/Dto/catalog/reorder-product.dto';
 import { GetMaxOrderDto } from 'src/logic/Dto/catalog/get-max-order.dto';
 import { DeleteCategoryDto } from 'src/logic/Dto/catalog/delete-category.dto';
+import { FileInterceptor } from '@nestjs/platform-express/multer';
 
 
 @Controller('catalog')
@@ -24,9 +25,13 @@ export class CatalogController {
   @UseGuards(AuthGuard)
   @Post("add_product")
   @HttpCode(201)
-  async createProduct(@Body() createProductDto: CreateProductDto, @Req() request: IOrdersRequest) {
-    const userId = request.user.uid
-    await this.catalogService.createProduct(createProductDto, request.user) 
+  @UseInterceptors(FileInterceptor('photo')) 
+  async createProduct(@Body() createProductDto: CreateProductDto, @Req() req: IOrdersRequest, @UploadedFile() photo: Express.Multer.File) {
+  
+    console.log(createProductDto)
+    console.log("photo", photo)
+    const userId = req.user.uid
+    await this.catalogService.createProduct(createProductDto, req.user) 
   }
 
  
@@ -75,7 +80,7 @@ export class CatalogController {
   ) {
     const userID = request.user.uid
     const response = await this.catalogService.getProducts(query, request.user)
-    console.log("products response", response)
+
     return new GetArrayOfProductsResponseDto(response)
   }
 

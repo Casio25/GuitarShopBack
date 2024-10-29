@@ -1,7 +1,7 @@
 import { BlobServiceClient, BlockBlobClient } from '@azure/storage-blob';
 import { Injectable } from '@nestjs/common';
 import { uuid } from 'uuidv4';
-
+const fs = require('fs');
 
 
 @Injectable()
@@ -16,10 +16,11 @@ export class AzureBlobService {
         return blobClient
     }
 
-    async upload (file: Express.Multer.File, containerName: string): Promise<string> {
+    async upload (file: Express.Multer.File, photoName: string,  containerName: string): Promise<string> {
+        
         try {
             this.containerName = containerName;
-            const pdfUrl = uuid() + file.originalname;
+            const pdfUrl = uuid() + photoName;
             const blobClient = this.getBlobClient(pdfUrl)
             await blobClient.uploadData(file.buffer);
             return pdfUrl
@@ -29,14 +30,22 @@ export class AzureBlobService {
         }
     }
 
-    async uploadStringPhoto (stringPhoto: string, containerName: string): Promise<string> {
+    async uploadStringPhoto (stringPhoto: string, productName: string,  containerName: string, ): Promise<string> {
         try {
             this.containerName = containerName;
-            const buffer = Buffer.from(stringPhoto, 'base64'); 
-            const pdfUrl = uuid() + stringPhoto;
-            const blobClient = this.getBlobClient(pdfUrl)
-            await blobClient.uploadData(buffer);
-            return pdfUrl
+            const cleanBase64 = stringPhoto.replace(/^data:image\/\w+;base64,/, '');
+            const buffer = Buffer.from(cleanBase64, 'base64');
+            // const buffer = Buffer.from(stringPhoto, 'base64');
+            fs.writeFileSync('test.png', buffer); 
+            // added .png so it would be a photo type
+            const imageUrl = uuid() + '.png';
+            const blobClient = this.getBlobClient(imageUrl)
+            const options = {
+                blobHTTPHeaders: {blobContentType: 'image/png'},
+                metadata: {productName: productName}
+            }
+            await blobClient.uploadData(buffer, options);
+            return blobClient.url
         } catch (error) {
             console.error("Error uploading string photo: ", error);
             throw new Error("Failed to upload string");

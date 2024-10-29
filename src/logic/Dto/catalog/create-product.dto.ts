@@ -1,4 +1,5 @@
-import { IsString, IsInt, IsNotEmpty, IsBoolean, IsArray } from "@nestjs/class-validator";
+
+import { IsString, IsInt, IsNotEmpty, IsBoolean, IsArray, } from "@nestjs/class-validator";
 import {  ICreateProductResponse, IGetProductsDataServiceResponse, IGetProductsResponse} from "@src/utils/interface/ProductInterface";
 import { IsIn, IsOptional } from "class-validator";
 import { Exclude, Expose, Type } from "class-transformer";
@@ -16,6 +17,7 @@ export class CreateProductDto {
     price: number;
 
     @IsString()
+    @IsNotEmpty()
     photo: string;
 
     @IsArray() // Change to validate as an array

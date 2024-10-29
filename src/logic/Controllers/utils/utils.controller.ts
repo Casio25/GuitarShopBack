@@ -15,11 +15,13 @@ export class UtilsController {
     private readonly azureBlobService: AzureBlobService) { }
   
   // Method to upload file to Azure Blob Storage
+  
   @Post('upload')
   @UseInterceptors(FileInterceptor('myfile'))
-  async upload(@UploadedFile() file: Express.Multer.File): Promise<string> {
+  async upload(@UploadedFile() file: Express.Multer.File, photoName: string): Promise<string> {
     console.log("hello world", file)
-    const fileUploaded = this.azureBlobService.upload(file, this.containerName);
+    
+    const fileUploaded = this.azureBlobService.upload(file, photoName, this.containerName);
     return fileUploaded;
   }
 

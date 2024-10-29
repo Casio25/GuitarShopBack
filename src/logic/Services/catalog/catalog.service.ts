@@ -15,6 +15,7 @@ import { DeleteProductDto } from 'src/logic/Dto/catalog/delete-product.dto';
 import { IOrdersRequest, IUserRequest } from '@src/utils/interface/requestInterface';
 import { User } from '@prisma/client';
 
+
 import { AzureBlobService } from '../azure-blob/azure-blob.service';
 
 const fs = require("fs");
@@ -50,6 +51,30 @@ export interface Category {
   name: string,
   type: string,
 }
+const sharp = require("sharp");
+
+// const resizeImage = async (photo: File, productName): Promise<string> => {
+//   try {
+    
+//     const base64Data = photo.replace(/^data:image\/\w+;base64,/, "");
+
+//     const imageBuffer = Buffer.from(base64Data, 'base64');
+    
+//     const resizedBuffer = await sharp(imageBuffer)
+//     .resize({
+//       width: 20,
+//       height: 20
+//     })
+//     .toFormat("jpeg", {mozjpeg: true})
+//     .toBuffer()
+    
+//     return resizedBuffer;
+
+//   }catch (error) {
+//     console.log("error compressing photo", error)
+//     throw new Error ('Errorcompressing photo')
+//   }
+// }
 
 
 @Injectable()
@@ -88,8 +113,10 @@ export class CatalogService {
       if (existingProduct && existingProduct.authorId === foundedUser.id) {
         throw new BadRequestException("Product with this name already exists")
       } else {
-        // const photoLink = await this. azureBlobServie.upload(createProductDto.photo, this.containerName)
-        const newProduct = await this.catalogDataService.createProduct(createProductDto, foundedUser.id);
+        // const resizedPhoto = await resizeImage(createProductDto.photo, createProductDto.name)
+        // console.log("resizedPhoto", resizedPhoto)
+        const photoLink = await this.azureBlobServie.uploadStringPhoto(createProductDto.photo, createProductDto.name, this.containerName)
+        const newProduct = await this.catalogDataService.createProduct(createProductDto, foundedUser.id, photoLink);
         console.log("new product", newProduct);
       }
   }
