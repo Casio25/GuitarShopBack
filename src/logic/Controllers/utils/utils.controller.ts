@@ -12,7 +12,7 @@ export class UtilsController {
   
   // Method to upload file to Azure Blob Storage
   
-  @Post('upload')
+  @Post('')
   @UseInterceptors(FileInterceptor('myfile'))
   async upload(@UploadedFile() file: Express.Multer.File, photoName: string): Promise<string> {
     console.log("hello world", file)
@@ -22,14 +22,14 @@ export class UtilsController {
   }
 
   // Method to retrieve file from Azure Blob Storage
-  @Get('read')
+  @Get('')
   async readFile(@Res() res, @Body() filename: string) {
     const file = await this.azureBlobService.getFile(filename, this.containerName);
     return file.pipe(res);
   }
 
   // Method to delete file from Azure Blob Storage
-  @Delete('delete')
+  @Delete('')
   async DeleteFile(@Body() filename: string) {
     await this.azureBlobService.deleteFile(filename, this.containerName);
     return { message: 'File deleted successfully' };

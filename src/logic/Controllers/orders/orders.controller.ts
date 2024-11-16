@@ -11,7 +11,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @UseGuards(AuthGuard)
-  @Post('create_order')
+  @Post()
   @HttpCode(201)
   async create(@Body() createOrderDto: CreateOrderDto, @Req() request: IRequest) {
     const user = request.user
@@ -19,7 +19,7 @@ export class OrdersController {
   }
 
   @UseGuards(AuthGuard)
-  @Patch("update_order")
+  @Patch()
   @HttpCode(200)
   async update(@Body() updateOrderDto: UpdateOrderDto, @Req() request: IRequest){
     const user = request.user
@@ -27,7 +27,7 @@ export class OrdersController {
   }
 
   @UseGuards(AuthGuard)
-  @Get('get_orders')
+  @Get()
   @HttpCode(200)
   async getOrders(@Req() request: IRequest) {
     const user = request.user
