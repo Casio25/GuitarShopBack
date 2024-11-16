@@ -10,7 +10,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { Request } from 'express';
-import { CatalogService } from 'src/logic/Services/catalog/catalog.service';
+
 
 
 @Injectable()

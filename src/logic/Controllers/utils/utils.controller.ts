@@ -1,7 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Inject, UseGuards, Res, ValidationPipe } from '@nestjs/common';
-import { UtilsService } from '../../Services/utils/utils.service';
-import { CreateUtilDto } from '../../../utils/dto/create-util.dto';
-import { UpdateUtilDto } from '../../../utils/dto/update-util.dto';
+
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AzureBlobService } from '../../Services/azure-blob/azure-blob.service';
 import { AuthGuard } from '@src/auth/auth.guard';
@@ -10,8 +8,6 @@ import { AuthGuard } from '@src/auth/auth.guard';
 export class UtilsController {
   containerName = "photos"
   constructor(
-    @Inject(UtilsService)
-    private utilsService: UtilsService,
     private readonly azureBlobService: AzureBlobService) { }
   
   // Method to upload file to Azure Blob Storage
@@ -35,7 +31,7 @@ export class UtilsController {
   // Method to delete file from Azure Blob Storage
   @Delete('delete')
   async DeleteFile(@Body() filename: string) {
-    await this.azureBlobService.deletefile(filename, this.containerName);
+    await this.azureBlobService.deleteFile(filename, this.containerName);
     return { message: 'File deleted successfully' };
   }
 }

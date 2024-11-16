@@ -6,7 +6,7 @@ import { AuthService } from '../../Services/auth/auth.service';
 import { CreateAuthDto } from '../../Dto/auth/create-auth.dto';
 import { UpdateAuthDto } from '../../Dto/auth/update-auth.dto';
 import { ForgotPasswordDto } from '../../Dto/auth/ForgotPassword.dto';
-import { IUserRequest } from '@src/utils/interface/requestInterface';
+
 
 @Controller('auth')
 export class AuthController {
@@ -55,7 +55,7 @@ export class AuthController {
   @HttpCode(200)
   async getProfile(@Request() request){
     const response = await this.authService.getProfileData(request.user)
-    console.log("controller response", response)
+  
     return response
   }
 

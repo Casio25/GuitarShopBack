@@ -1,11 +1,11 @@
 import { AuthModule } from './../Modules/auth/auth.module';
-import { CatalogDataService } from './../DataServices/catalogData.service';
+import { CatalogDataService } from './categoryData.service';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from './../../prisma/prisma.service';
-import { CatalogModule } from 'src/logic/Modules/catalog/catalog.module';
-import { Type } from 'src/logic/Dto/catalog/create-category.dto';
+import { CategoryModule } from '@src/logic/Modules/category/category.module';
+import { Type } from '@src/logic/Dto/category/create-category.dto';
 import { response } from 'express';
 
 describe('CatalogDataService', () => {
@@ -13,7 +13,7 @@ describe('CatalogDataService', () => {
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            imports: [AuthModule, CatalogModule],
+            imports: [AuthModule, CategoryModule],
             providers: [ CatalogDataService, JwtService, PrismaService],
         }).compile();
 

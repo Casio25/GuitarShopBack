@@ -1,28 +1,28 @@
 import { JwtService } from '@nestjs/jwt';
-import { AuthModule } from './../../Modules/auth/auth.module';
+import { AuthModule } from '../../Modules/auth/auth.module';
 
 import { AuthGuard } from 'src/auth/auth.guard';
-import { CatalogService } from './../../Services/catalog/catalog.service';
+import { CategoryService } from '../../Services/category/category.service';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CatalogController } from './catalog.controller';
+import { CategoryController } from './category.controller';
 import { AuthService } from 'src/logic/Services/auth/auth.service';
-import { CatalogModule } from 'src/logic/Modules/catalog/catalog.module';
-import { Type } from 'src/logic/Dto/catalog/create-category.dto';
+import { CategoryModule } from '@src/logic/Modules/category/category.module';
+import { Type } from '@src/logic/Dto/category/create-category.dto';
 
 
-describe('CatalogController', () => {
-  let controller: CatalogController;
-  let service: CatalogService
+describe('CategoryController', () => {
+  let controller: CategoryController;
+  let service: CategoryService
   let authService: AuthService;
   let jwtService: JwtService
 
   beforeEach(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
-      imports: [AuthModule, CatalogModule],
-      controllers: [CatalogController],
+      imports: [AuthModule, CategoryModule],
+      controllers: [CategoryController],
       providers: [AuthService, JwtService,
       {
-        provide: CatalogService,
+        provide: CategoryService,
         useValue: {
           createProduct: jest.fn(),
           createCategory: jest.fn()
@@ -36,51 +36,16 @@ describe('CatalogController', () => {
     }]
     }).compile();
 
-    controller = moduleRef.get<CatalogController>(CatalogController);
+    controller = moduleRef.get<CategoryController>(CategoryController);
     authService = moduleRef.get<AuthService>(AuthService);
-    service = moduleRef.get<CatalogService>(CatalogService)
+    service = moduleRef.get<CategoryService>(CategoryService)
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it("should create product", async ()=> {
-    const request = {
-      user: {
-        id: 1,
-        email: "emailTest",
-        roleId: 1
-      }
-    }
-    const newProduct = {
-    name: "NewProduct",
-    authorId: 1,
-    price: 100,
-    photo:"photo",
-    categories: [{
-      id: 1,
-      name: "categoryName",
-      type: "categoryType"
-    }],
-    orders: [{
-      id: 1,
-      order: 1,
-      categoryId: 1,
-      authorId: 1
-    }],
-    description: "decription",  
-    visibility: true,
-    inStock: true
-    }
-    const response = {
-      status: 201
-    }
-    const createProductSpy = jest.spyOn(controller, "createProduct").mockResolvedValue(undefined)
-    const createProductServiceSpy = jest.spyOn(service, "createProduct").mockResolvedValue(undefined)
-    await controller.createProduct(newProduct, request)
-    expect (createProductSpy).toHaveBeenCalledWith(newProduct, request)
-  })
+
 
   it ("should create category", async() => {
     const request = {

@@ -87,10 +87,17 @@ model Venue {
   id        Int      @id @default(autoincrement())
   name      String
   createdAt DateTime @default(now())
+  menu      Menu?    @relation(fields: [menuId], references: [id])
+  menuId    Int?
   users     User[]
   orders    Order[]
-}
 
+}
+model Menu {
+  id        Int @id @default(autoincrement())
+  venues    Venue[]
+  products  Product[]
+}
 model Category {
   id       Int                 @id @default(autoincrement())
   name     String
@@ -136,6 +143,7 @@ model Product {
   categories  Category[]
   orders      OrderOfProduct[] // One product can have multiple orders across different categories
   productOnOrder ProductOnOrder[]
+  menus Menu[]
 }
 
 

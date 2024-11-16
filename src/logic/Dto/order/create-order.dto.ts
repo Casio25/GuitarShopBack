@@ -41,11 +41,3 @@ export class Payment {
   paymentType: PaymentType;
 }
 
-export class CreateVenueDto {
-  
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-
-}
-

@@ -7,7 +7,7 @@ export interface ICreateProduct {
     visibility: boolean
     inStock: boolean
     categories: Category[]
-    orders: Order[]
+    orders: NewOrder[]
     
 }
 export interface ICreateProductResponseData{
@@ -32,6 +32,11 @@ export interface Category {
     type: string,
     
 
+}
+export interface NewOrder {
+    authorId: number,
+    order: number,
+    categoryId: number,
 }
 
 export interface Order {
@@ -68,6 +73,17 @@ export interface IGetProductsResponse {
     orders: Order[]
 }
 
+export interface IGetProductsQuery {
+    type?: string,
+    string?: string,
+    price?: string,
+    productIds?: string,
+    categories?: Category[]
+    orders?: Order[]
+    skip?: number,
+    take?: number
+}
+
 export interface Order{
     id: number,
     order: number
@@ -100,10 +116,6 @@ export interface IProductAuth {
     authorId: number
 }
 
-export interface IDeleteProduct {
-    id: number,
-    authorId: number
-}
 
 export interface IGetProductsDataServiceResponse {
     count: number,

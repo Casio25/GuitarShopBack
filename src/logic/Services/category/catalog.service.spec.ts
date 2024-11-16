@@ -1,23 +1,24 @@
-import { AuthModule } from './../../Modules/auth/auth.module';
-import { CatalogDataService } from './../../DataServices/catalogData.service';
+import { AuthModule } from '../../Modules/auth/auth.module';
+import { CategoryDataService } from '../../DataServices/categoryData.service';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CatalogService } from './catalog.service';
+
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from './../../../prisma/prisma.service';
-import { CatalogModule } from 'src/logic/Modules/catalog/catalog.module';
-import { Type } from 'src/logic/Dto/catalog/create-category.dto';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { CategoryModule } from '@src/logic/Modules/category/category.module';
+import { Type } from '@src/logic/Dto/category/create-category.dto';
 import { response } from 'express';
+import { CategoryService } from './category.service';
 
 describe('CatalogService', () => {
-  let service: CatalogService;
+  let service: CategoryService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [AuthModule, CatalogModule],
-      providers: [CatalogService, CatalogDataService, JwtService, PrismaService],
+      imports: [AuthModule, CategoryModule],
+      providers: [CategoryService, CategoryDataService, JwtService, PrismaService],
     }).compile();
 
-    service = module.get<CatalogService>(CatalogService);
+    service = module.get<CategoryService>(CategoryService);
   });
 
   it('should be defined', () => {
@@ -123,7 +124,7 @@ describe('CatalogService', () => {
   it ('should return categories', async() => {
     const request = {
       user: {
-        id: 1,
+        uid: 1,
         email: "emailTest",
         roleId: 1
       }
@@ -140,56 +141,7 @@ describe('CatalogService', () => {
     expect (getCategoriesSpy).toHaveBeenCalledWith(request.user)
   })
 
-  it ("should return bigger order products", async() => {
-    const query = {
-      type: 'test',
-      productId: "tesr",
-      string: "string",
-      categories: [{
-        id: 1,
-        name: "TestCate",
-        type: "private"
-      }],
-      orders: [{
-        id: 1,
-        order: 1,
-        categoryId: 1,
-        authorId: 1
-      }]
-    }
-    const request = {
-      user: {
-        id: 1,
-        email: "emailTest",
-      }
-    }
-    const response = {
-      authorId: 1,
-      categories: [{
-        id: 1,
-        name: "TestCate",
-        type: "private"
-      }],
-      description: "test",
-      id: 1,
-      inStock: true,
-      name: "test",
-      orders: [{
-        id: 1,
-        order: 1,
-        categoryId: 1,
-        authorId: 1
-      }],
-      photo: "test",
-      price: 1,
-      visibility: true
-    }
 
-    const getBiggerOrderProductsSpy = jest.spyOn(service, "getBiggerOrderProducts").mockResolvedValue(response)
-    const result = await service.getBiggerOrderProducts(query, request)
-    expect (result).toEqual(response)
-    expect( getBiggerOrderProductsSpy).toHaveBeenCalledWith(query, request)
-  })
 
   it ("should change product", async() => {
     const email = "test"
@@ -255,14 +207,4 @@ describe('CatalogService', () => {
     expect (deleteCategorySpy).toHaveBeenCalledWith(deletedCatalog, email)
   })
 
-  it ("should return max order", async()=>{
-    const email = "test"
-    const getMaxOrder = {
-      categoryId: 1
-    }
-    const response = 2
-    const getMaxOrderSpy = jest.spyOn(service, "getMaxOrder").mockResolvedValue(response)
-    await service.getMaxOrder(getMaxOrder, email)
-    expect (getMaxOrderSpy).toHaveBeenCalledWith(getMaxOrder, email)
-  })
 });

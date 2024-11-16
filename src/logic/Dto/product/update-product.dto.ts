@@ -1,6 +1,6 @@
 import { IsString, IsInt, IsNotEmpty, IsBoolean, IsArray } from "@nestjs/class-validator";
 import { IsOptional } from "class-validator";
-export class ChangeProductDto {
+export class UpdateProductDto {
 
     @IsInt()
     @IsNotEmpty()

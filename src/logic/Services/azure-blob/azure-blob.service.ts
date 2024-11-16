@@ -36,7 +36,6 @@ export class AzureBlobService {
             const cleanBase64 = stringPhoto.replace(/^data:image\/\w+;base64,/, '');
             const buffer = Buffer.from(cleanBase64, 'base64');
             // const buffer = Buffer.from(stringPhoto, 'base64');
-            fs.writeFileSync('test.png', buffer); 
             // added .png so it would be a photo type
             const imageUrl = uuid() + '.png';
             const blobClient = this.getBlobClient(imageUrl)
@@ -59,9 +58,17 @@ export class AzureBlobService {
         return blobDownloaded.readableStreamBody;
     }
 
-    async deletefile(fileName: string, containerName: string){
+    async deleteFile(fileName: string, containerName: string){
         this.containerName = containerName;
         const blobClient = this.getBlobClient(fileName);
+        await blobClient.deleteIfExists()
+    }
+    async deleteFileByURL(url: string, containerName: string) {
+        const urlParts = new URL(url)
+        const pathParts = urlParts.pathname.split('/')
+        console.log(pathParts)
+        this.containerName = containerName;
+        const blobClient = this.getBlobClient(pathParts[2]);
         await blobClient.deleteIfExists()
     }
 }

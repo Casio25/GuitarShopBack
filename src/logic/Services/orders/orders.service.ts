@@ -1,19 +1,21 @@
-import { CatalogDataService } from './../../DataServices/catalogData.service';
+import { CategoryDataService } from '../../DataServices/categoryData.service';
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { AuthDataService } from 'src/logic/DataServices/authData.service';
-import { OrderDataService } from 'src/logic/DataServices/orderDataServce';
+import { OrderDataService } from '@src/logic/DataServices/orderDataService';
 import { UpdateOrderDto } from '../../Dto/order/update-order.dto';
-import { CreateOrderInterface } from '@src/utils/interface/createOrderInterface';
-import { CreateOrderVenue, GetOrderVenue, IGetOrdersResponse } from '@src/utils/interface/orderInterface';
+import { CreateOrderInterface } from '@src/utils/interface/orderInterface';
+import {  GetOrderVenue, IGetOrdersResponse } from '@src/utils/interface/orderInterface';
 import { IGetOrdersDataServiceResponse } from '@src/utils/interface/IGetOrder';
 import { IUserRequest } from '@src/utils/interface/requestInterface';
 import { IDataServiceUser } from '@src/utils/interface/IUser';
 import { User } from '@prisma/client';
+import { ProductDataService } from '@src/logic/DataServices/productData.service';
 
 @Injectable()
 export class OrdersService {
   constructor(private orderDataService: OrderDataService,
-    private catalogDataService: CatalogDataService,
+    private categoryDataService: CategoryDataService,
+    private productDataService: ProductDataService, 
     private authDataService: AuthDataService) { }
 
   private checkAdminRole(user: User) {
@@ -48,7 +50,7 @@ export class OrdersService {
     const productIds = createOrderDto.products.map(product => product.productId);
     console.log("productIds", productIds)
     console.log("user.uid")
-      const allProducts = await this.catalogDataService.getProducts({
+      const allProducts = await this.productDataService.getProducts({
         id: { in: productIds },
         authorId: user.uid
       });
@@ -102,7 +104,7 @@ export class OrdersService {
       const productIds = updateOrderDto.products.map(product => product.productId);
       console.log("productIds", productIds)
       console.log("user.uid")
-      const allProducts = await this.catalogDataService.getProducts({
+      const allProducts = await this.productDataService.getProducts({
         id: { in: productIds },
         authorId: user.uid
       });
@@ -143,18 +145,5 @@ export class OrdersService {
     }
   }
 
-  async createVenue(newVenue: CreateOrderVenue, user: IUserRequest){
-    const userData = {
-      id: user.uid
-    }
-    const foundedUser = await this.authDataService.findUser(user.email)
-    this.checkForUser(foundedUser)
-    this.checkAdminRole(foundedUser)
-    try{
-      await this.orderDataService.createVenue(newVenue, foundedUser.id)
-    }catch (error){
-      throw new BadRequestException("Error creating venue", error);
-      
-    }
-  }
+  
 }

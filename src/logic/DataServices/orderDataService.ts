@@ -1,10 +1,10 @@
 
 import { ConsoleLogger, Injectable, Req } from '@nestjs/common';
 import { IGetOrdersDataServiceResponse } from '@src/utils/interface/IGetOrder';
-import { CreateOrderVenue, GetOrderVenue, IGetOrdersResponse } from '@src/utils/interface/orderInterface';
+import { GetOrderVenue, IGetOrdersResponse } from '@src/utils/interface/orderInterface';
 import { connect } from 'http2';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateOrderInterface, OrderProducts, Product } from '@src/utils/interface/createOrderInterface';
+import { CreateOrderInterface, OrderProducts, Product } from '@src/utils/interface/orderInterface';
 import { UpdateOrderInterface } from '@src/utils/interface/updateOrderInterface';
 
 
@@ -137,23 +137,4 @@ export class OrderDataService {
             throw error;
         }
     }
-
-    async createVenue(VenueData: CreateOrderVenue, authorId: number){
-        try{
-            const newVenue = await this.prisma.venue.create({
-                data: {
-                    name: VenueData.name,
-                    users: {
-                        connect: {
-                            id: authorId
-                        }
-                    }
-                }
-            })
-            return newVenue
-        }catch(error){
-            console.error ("Error creating new venue", error)
-        }
-    }
-
 }

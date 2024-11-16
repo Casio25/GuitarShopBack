@@ -1,4 +1,4 @@
-import { OrderStatus, PaymentStatus, PaymentType, Product } from "./createOrderInterface";
+
 
 /* eslint-disable prettier/prettier */
 export interface ICreateOrder {
@@ -35,10 +35,6 @@ export interface GetOrderVenue{
   creatAt: Date
 }
 
-export interface CreateOrderVenue {
-  name: string
-}
-
 export interface IGetOrdersResponse {
   id: number,
   authorId: number,
@@ -51,4 +47,49 @@ export interface IGetOrdersResponse {
   venue: GetOrderVenue
 }
 
+export interface CreateOrderInterface {
+  orderId: number;
+  creatAt: string;
+  orderStatus: OrderStatus;
+  products: Product[];
+  payment: Payment;
+  venueId: number
+}
+
+export interface Payment {
+  paymentStatus: PaymentStatus;
+  paymentType: PaymentType;
+}
+
+export enum PaymentStatus {
+  paid = 'paid',
+  unpaid = 'unpaid'
+}
+
+export enum PaymentType {
+  cash = "cash",
+  digital = "digital"
+}
+
+export enum OrderStatus {
+  new = "new",
+  inProgress = "inProgress",
+  finished = "finished"
+}
+export interface Product {
+  productId: number,
+  productName?: string,
+  quantity: number,
+  productPrice?: number
+}
+
+export interface OrderProducts {
+  products: OrderProductDetails[]
+}
+
+export interface OrderProductDetails {
+  productId: number,
+  quantity: number,
+  price: number
+}
 

@@ -1,8 +1,6 @@
 /* eslint-disable prettier/prettier */
-export interface IRequest {
-  userEmail: string;
-}
-export interface IOrdersRequest{
+
+export interface IRequest{
   user: IUserRequest;
   body: any
 }
