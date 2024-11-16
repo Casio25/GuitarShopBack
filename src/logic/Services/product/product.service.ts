@@ -119,10 +119,10 @@ export class ProductService {
     }
   }
 
-  async updateProduct(changeProductDto: IChangeProduct, userData: IUserRequest) {
+  async updateProduct(productId: number, changeProductDto: IChangeProduct, userData: IUserRequest) {
     const user = await this.authDataService.findUser(userData.email);
     if (user.roleId === 1 && user.id === changeProductDto.authorId) {
-      await this.productDataService.changeProduct(changeProductDto);
+      await this.productDataService.changeProduct(productId, changeProductDto);
     } else {
       throw new BadRequestException("Error changing products")
     }

@@ -104,11 +104,11 @@ export class ProductDataService {
         }
     }
 
-    async changeProduct(product: IChangeProduct) {
+    async changeProduct(productId: number, product: IChangeProduct) {
         try {
             const existingProduct = await this.prisma.product.findUnique({
                 where: {
-                    id: product.id
+                    id: productId
                 },
                 include: {
                     orders: true // Include the orders associated with the product
@@ -130,7 +130,7 @@ export class ProductDataService {
 
             const updatedProduct = await this.prisma.product.update({
                 where: {
-                    id: product.id
+                    id: productId
                 },
                 data: {
                     name: product.name,

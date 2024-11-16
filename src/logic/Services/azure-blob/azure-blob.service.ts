@@ -66,8 +66,8 @@ export class AzureBlobService {
     async deleteFileByURL(url: string, containerName: string) {
         const urlParts = new URL(url)
         const pathParts = urlParts.pathname.split('/')
-        console.log(pathParts)
         this.containerName = containerName;
+        // using index 2 because url of file includes fileName at index 2, which we extruted from url
         const blobClient = this.getBlobClient(pathParts[2]);
         await blobClient.deleteIfExists()
     }

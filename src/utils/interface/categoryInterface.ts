@@ -12,7 +12,6 @@ export interface ICustomCategory {
 }
 
 export interface IDeleteCategory {
-    id: number,
     name: string,
     type: string
 }

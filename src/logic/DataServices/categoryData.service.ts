@@ -3,7 +3,7 @@ import { ICreateProduct, IChangeProduct} from '@src/utils/interface/ProductInter
 import { CreateProductDto } from '@src/logic/Dto/product/create-product.dto';
 import { ConsoleLogger, Injectable, Req } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ICreateCategory, IGetCategoriesDataServiceResponse } from '@src/utils/interface/categoryInterface';
+import { ICreateCategory, IDeleteCategory, IGetCategoriesDataServiceResponse } from '@src/utils/interface/categoryInterface';
 import { Console } from 'console';
 
 interface IQueryParams {
@@ -42,11 +42,11 @@ export class CategoryDataService {
     constructor(private prisma: PrismaService) {}
  
 
-    async deleteCategory(category, authorId){
+    async deleteCategory(categoryId: number, category: IDeleteCategory, authorId){
         try {
              await this.prisma.category.delete({
                 where: {
-                    id: category.id
+                    id: categoryId
                 }
             })
         } catch (error) {

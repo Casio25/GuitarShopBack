@@ -12,7 +12,7 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @UseGuards(AuthGuard)
-  @Post("create")
+  @Post()
   @HttpCode(201)
   @UseInterceptors(FileInterceptor('photo'))
   async createProduct(@Body() createProductDto: CreateProductDto, @Req() req: IRequest, @UploadedFile() photo: Express.Multer.File) {
@@ -22,7 +22,7 @@ export class ProductController {
   }
 
   @UseGuards(AuthGuard)
-  @Get("get_products")
+  @Get()
   @HttpCode(200)
   async getAllProducts(
     @Query() query: GetProductsQueryParamDto,
@@ -35,11 +35,12 @@ export class ProductController {
   }
 
   @UseGuards(AuthGuard)
-  @Patch("update")
+  @Patch(":id")
   @HttpCode(200)
-  async changeProduct(@Body() updateProductDto: UpdateProductDto, @Req() request: IRequest) {
+  async changeProduct(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto, @Req() request: IRequest) {
+    console.log ('productId', id)
     const userID = request.user.uid
-    await this.productService.updateProduct(updateProductDto, request.user);
+    await this.productService.updateProduct(Number(id), updateProductDto, request.user);
   }
 
   @UseGuards(AuthGuard)

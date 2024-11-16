@@ -87,17 +87,19 @@ model Venue {
   id        Int      @id @default(autoincrement())
   name      String
   createdAt DateTime @default(now())
-  menu      Menu?    @relation(fields: [menuId], references: [id])
-  menuId    Int?
+  menu      Menu?
+  menuId    Int
   users     User[]
   orders    Order[]
 
 }
 model Menu {
   id        Int @id @default(autoincrement())
-  venues    Venue[]
+  venue    Venue @relation(fields: [venueId], references: [id])
+  venueId  Int  @unique
   products  Product[]
 }
+
 model Category {
   id       Int                 @id @default(autoincrement())
   name     String

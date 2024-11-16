@@ -160,7 +160,7 @@ export class CategoryService {
 
   }
 
-  async deleteCategory(deleteCategoryDto: IDeleteCategory, user: IUserRequest){
+  async deleteCategory(categoryId: number, deleteCategoryDto: IDeleteCategory, user: IUserRequest){
     const userData = {
       id: user.uid
     }
@@ -169,7 +169,7 @@ export class CategoryService {
     this.checkAdminRole(foundedUser)
 
     try { (foundedUser.roleId === 1)
-     await this.categoryDataService.deleteCategory(deleteCategoryDto, foundedUser.id)
+     await this.categoryDataService.deleteCategory(categoryId, deleteCategoryDto, foundedUser.id)
     }catch (error){
       throw new Error ("Error deleting category")
     }  

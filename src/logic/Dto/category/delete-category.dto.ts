@@ -5,11 +5,7 @@ export class DeleteCategoryDto {
     @IsNotEmpty()
     @IsString()
     name: string
-
-    @IsInt()
-    @IsNotEmpty()
-    id: number
-
+    
     @IsNotEmpty()
     @IsString()
     type: string

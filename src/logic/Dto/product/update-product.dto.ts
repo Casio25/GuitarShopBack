@@ -2,10 +2,6 @@ import { IsString, IsInt, IsNotEmpty, IsBoolean, IsArray } from "@nestjs/class-v
 import { IsOptional } from "class-validator";
 export class UpdateProductDto {
 
-    @IsInt()
-    @IsNotEmpty()
-    id: number;
-
     @IsNotEmpty()
     @IsString()
     name: string;

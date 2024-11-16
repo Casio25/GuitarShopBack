@@ -92,7 +92,6 @@ export interface Order{
 }
 export interface IChangeProduct {
     authorId: number
-    id: number
     name: string
     photo: string
     description: string

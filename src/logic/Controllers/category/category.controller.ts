@@ -15,7 +15,7 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) { }
 
   @UseGuards(AuthGuard)
-  @Post("create_category")
+  @Post()
   @HttpCode(201)
   async createCategory(@Body() createCategoryDto: CreateCategoryDto, @Req() request: IRequest) {
     const user = request.user
@@ -24,7 +24,7 @@ export class CategoryController {
   }
 
   @UseGuards(AuthGuard)
-  @Get("get_categories")
+  @Get()
   @HttpCode(200)
   async getCategories(@Req() request: IRequest) {
     const userId = request.user.uid
@@ -33,12 +33,11 @@ export class CategoryController {
   }
 
   @UseGuards(AuthGuard)
-  @Delete("delete_category")
+  @Delete(":id")
   @HttpCode(200)
-  async deleteCategory(@Body() deleteCategoryDto: DeleteCategoryDto, @Req() request: IRequest): Promise<any> {
-    
+  async deleteCategory(@Param("id") id: number, @Body() deleteCategoryDto: DeleteCategoryDto, @Req() request: IRequest): Promise<any> {
     const userID = request.user.uid
-    await this.categoryService.deleteCategory(deleteCategoryDto, request.user);
+    await this.categoryService.deleteCategory(Number(id), deleteCategoryDto, request.user);
   }
 
  }
