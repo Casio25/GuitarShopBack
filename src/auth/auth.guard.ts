@@ -11,8 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { Request } from 'express';
 
-
-
+//reminder: If you want to change what info is stored in jwt token, go to auth.service.ts
 @Injectable()
 export class AuthGuard implements CanActivate {
     constructor(protected jwtService: JwtService) { }
@@ -29,6 +28,10 @@ export class AuthGuard implements CanActivate {
             const payload = await this.jwtService.verifyAsync(token, {
                 secret: jwtConstants.secret,
             });
+
+            if (!payload.uid){
+                throw new UnauthorizedException("Invalid token payload")
+            }1
             request['user'] = payload;
         } catch {
             throw new UnauthorizedException();

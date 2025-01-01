@@ -24,26 +24,29 @@ export class ProductService {
     private categoryDataService: CategoryDataService,
     private authDataService: AuthDataService,
     private azureBlobServie: AzureBlobService) { }
+  
 
-  private checkAdminRole(user: User) {
-    console.log("user", user.roleId)
-    if (user.roleId !== 1) {
-      throw new UnauthorizedException("Access denied")
-    }
-  }
-  private checkForUser(user: User) {
-    if (!user) {
-      throw new NotFoundException("User not found")
-    }
-  }
+
+  // private checkAdminRole(user: User) {
+  //   console.log("user", user.roleId)
+  //   if (user.roleId !== 1) {
+  //     throw new UnauthorizedException("Access denied")
+  //   }
+  // }
+  // private checkForUser(user: User) {
+  //   if (!user) {
+  //     throw new NotFoundException("User not found")
+  //   }
+  // }
+
+
   async createProduct(createProductDto: ICreateProduct, user: IUserRequest): Promise<any> {
-    const userData = {
-      id: user.uid
-    }
-    const foundedUser = await this.authDataService.findUser(user.email)
-
-    this.checkForUser(foundedUser)
-    this.checkAdminRole(foundedUser)
+    
+    const foundedUser = await this.authDataService.findUser(user)
+    // const acl_permission = await this.aclseervice(foundedUser.id) acl pseudo example
+    
+    // this.checkForUser(foundedUser)
+    // this.checkAdminRole(foundedUser)
 
     const existingProduct = await this.productDataService.findProduct(createProductDto.name);
     if (existingProduct && existingProduct.authorId === foundedUser.id) {
@@ -67,12 +70,12 @@ export class ProductService {
     const userData = {
       id: user.uid
     }
-    const foundedUser = await this.authDataService.findUser(user.email)
+    const foundedUser = await this.authDataService.findUser(user)
     const where: any = {};
     let skip = 0;
     let take = 100
 
-    if (foundedUser !== undefined && foundedUser.roleId === 1) {
+    if (foundedUser !== undefined ) {
       where.authorId = userData.id;
     }
     if (query.productIds) {
@@ -120,8 +123,8 @@ export class ProductService {
   }
 
   async updateProduct(productId: number, changeProductDto: IChangeProduct, userData: IUserRequest) {
-    const user = await this.authDataService.findUser(userData.email);
-    if (user.roleId === 1 && user.id === changeProductDto.authorId) {
+    const user = await this.authDataService.findUser(userData);
+    if ( user.id === changeProductDto.authorId) {
       await this.productDataService.changeProduct(productId, changeProductDto);
     } else {
       throw new BadRequestException("Error changing products")
@@ -131,11 +134,10 @@ export class ProductService {
 
 
   async deleteProduct(productId, user: IUserRequest) {
-    const foundedUser = await this.authDataService.findUser(user.email)
-    this.checkForUser(foundedUser)
-    this.checkAdminRole(foundedUser)
+    const foundedUser = await this.authDataService.findUser(user)
+    
     const productFound = await this.getProducts({productIds: `${productId}`}, user)
-    if (foundedUser.roleId == 1 ) {
+    if (foundedUser) {
       await this.productDataService.deleteProduct(Number(productId))
       await this.azureBlobServie.deleteFileByURL(productFound.data[0].photo, this.containerName)
     } else {

@@ -12,11 +12,12 @@ import { UtilsModule } from './logic/Modules/utils/utils.module';
 import { AzureBlobService } from './logic/Services/azure-blob/azure-blob.service';
 import { ProductModule } from './logic/Modules/product/product.module';
 import { VenueModule } from './logic/Modules/venue/venue.module';
+import { MenuModule } from './logic/Modules/menu/menu.module';
 
 
 
 @Module({
-  imports: [CategoryModule, PrismaModule, AuthModule, ConfigModule.forRoot({ cache: true }), OrdersModule, UtilsModule, ProductModule, VenueModule],
+  imports: [CategoryModule, PrismaModule, AuthModule, ConfigModule.forRoot({ cache: true }), OrdersModule, UtilsModule, ProductModule, VenueModule, MenuModule],
   controllers: [AppController],
   providers: [AppService, AuthGuard, CustomAuthGuard, AzureBlobService],
 })

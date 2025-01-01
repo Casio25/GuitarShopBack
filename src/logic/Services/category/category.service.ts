@@ -83,17 +83,17 @@ export class CategoryService {
     private authDataService: AuthDataService,
     private azureBlobServie: AzureBlobService) { }
 
-  private checkAdminRole(user: User){
-    console.log("user", user.roleId)
-    if (user.roleId !== 1){
-      throw new UnauthorizedException("Access denied")
-    }
-  }
-  private checkForUser(user: User){
-    if (!user){
-      throw new NotFoundException("User not found")
-    }
-  }
+  // private checkAdminRole(user: User){
+  //   console.log("user", user.roleId)
+  //   if (user.roleId !== 1){
+  //     throw new UnauthorizedException("Access denied")
+  //   }
+  // }
+  // private checkForUser(user: User){
+  //   if (!user){
+  //     throw new NotFoundException("User not found")
+  //   }
+  // }
 
 
 
@@ -137,9 +137,9 @@ export class CategoryService {
     const userData = {
       id: user.uid
     }
-    const foundedUser = await this.authDataService.findUser(user.email)
-    this.checkForUser(foundedUser)
-    this.checkAdminRole(foundedUser)
+    const foundedUser = await this.authDataService.findUser(user)
+    // this.checkForUser(foundedUser)
+    // this.checkAdminRole(foundedUser)
     console.log("founded user", foundedUser)
     const categories = await this.categoryDataService.getCategories(foundedUser.id)
     console.log("categories", categories)
@@ -164,11 +164,11 @@ export class CategoryService {
     const userData = {
       id: user.uid
     }
-    const foundedUser = await this.authDataService.findUser(user.email)
-    this.checkForUser(foundedUser)
-    this.checkAdminRole(foundedUser)
+    const foundedUser = await this.authDataService.findUser(user)
+    // this.checkForUser(foundedUser)
+    // this.checkAdminRole(foundedUser)
 
-    try { (foundedUser.roleId === 1)
+    try { (foundedUser)
      await this.categoryDataService.deleteCategory(categoryId, deleteCategoryDto, foundedUser.id)
     }catch (error){
       throw new Error ("Error deleting category")

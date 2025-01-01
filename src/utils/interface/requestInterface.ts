@@ -5,6 +5,6 @@ export interface IRequest{
   body: any
 }
 export interface IUserRequest {
-  uid: number
-  email: string
+  uid?: number
+  email?: string
 }

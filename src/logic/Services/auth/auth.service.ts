@@ -17,26 +17,27 @@ import { JwtService } from '@nestjs/jwt'
 import { IForgotPassword } from '@src/utils/interface/IForgotPassword';
 import { IRequest, IUserRequest } from '@src/utils/interface/requestInterface';
 import { IUser } from '@src/utils/interface/IUser';
+import { ICreateACL } from '@src/utils/interface/ACLInterface';
 
 @Injectable()
 export class AuthService {
   private authors: (CreateAuthDto | SignInAuthDto)[] = [];
   constructor(private authDataService: AuthDataService,
               private jwtService: JwtService){}
-  private checkAdminRole(user: IUser) {
-    if (user.roleId !== 1) {
-      throw new UnauthorizedException("Access denied")
-    }
-  }
-  private checkForUser(user: IUser) {
-    if (!user) {
-      throw new NotFoundException("User not found")
-    }
-  }
+  // private checkAdminRole(user: IUser) {
+  //   if (user.roleId !== 1) {
+  //     throw new UnauthorizedException("Access denied")
+  //   }
+  // }
+  // private checkForUser(user: User) {
+  //   if (!user) {
+  //     throw new NotFoundException("User not found")
+  //   }
+  // }
   //creating new user
   async createAuth(createAuthDto: ICreateAuth) {
     try {
-      const user = await this.authDataService.findUser(createAuthDto.email)
+      const user = await this.authDataService.findUser(createAuthDto)
       if (user) {
         throw new Error("User already exists")
       }
@@ -58,7 +59,7 @@ export class AuthService {
 
   async resendEmail(forgotPasswordDto: IForgotPassword): Promise<any> {
     console.log("resend email user email: ", forgotPasswordDto.email)
-    const user = await this.authDataService.findUser(forgotPasswordDto.email);
+    const user = await this.authDataService.findUser(forgotPasswordDto);
     try {
       if (user?.email !== forgotPasswordDto.email) {
         throw new Error("User with this email doesn't exist")
@@ -86,7 +87,11 @@ export class AuthService {
         service: 'gmail',
         auth: {
           user: process.env.NODEMAILER_EMAIL,
-          pass: process.env.NODEMAILER_PASSWORD,
+          // pass: process.env.NODEMAILER_PASSWORD, old method used before 2Auth
+          type: "OAuth2",
+          clientId: process.env.NODEMAILER_GOOGLE_CLOUD_CLIENT_ID,
+          clientSecret: process.env.NODEMAILER_GOOGLE_CLOUD_CLIENT_SECRET,
+          refreshToken: process.env.NODEMAILER_GOOGLE_CLOUD_REFRESH_TOKEN
         },
       });
 
@@ -109,9 +114,9 @@ export class AuthService {
       });
     });
   }
-
+// this is where jwt info is defined
   async signIn(signInAuthDto: ISignAuth): Promise<ISignInResponse> {
-    const user = await this.authDataService.findUser(signInAuthDto.email);
+    const user = await this.authDataService.findUser(signInAuthDto);
     
     if (!user) {
       throw new BadRequestException("User with this email doesn't exist");
@@ -135,9 +140,9 @@ export class AuthService {
 
 
   async forgotPassword(forgotPasswordDto: IForgotPassword): Promise<any> {
-    const user = await this.authDataService.findUser(forgotPasswordDto.email);
+    const user = await this.authDataService.findUser(forgotPasswordDto);
     try {
-      this.checkForUser(user)
+      
       
       const payload = { email: user.email }
       const jwtToken = await this.jwtService.signAsync(payload);
@@ -177,27 +182,15 @@ export class AuthService {
       throw new BadRequestException ("Error updating user", error);
     }
   }
-
+ //this method verifies the user, it means that isEmailConfirmed is set to true
   async verify(req: IUserRequest) {
     try {
       const user = req.uid
-      
-
-      const data: any = {
-        isEmailConfirmed: true
-      }
-
-      await this.authDataService.verify(user);
-
-      
+      await this.authDataService.verify(user); 
     } catch (error) {
       throw new BadRequestException ("Error verifying user", error);
     }
   }
-
-
-
-
 
   private forgotPasswordEmail(email: string, jwtToken: string): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -232,16 +225,16 @@ export class AuthService {
     });
   }
 
-  async createPermission(){
-    return this.authDataService.createRoleAndPermissions()
-  }
-
   async getProfileData(user: IUserRequest){
-    
-    const response = await this.authDataService.findUser(user.email)
+    const response = await this.authDataService.findUser(user)
     console.log("response", response)
     return response
   }
+
+  async createACL(user: IUserRequest, ACLData: ICreateACL){
+    await this.authDataService.createACL(user.uid, ACLData)
+  }
+
 
 
 

@@ -12,6 +12,7 @@ export class VenueController {
   @Post()
   create(@Body() createVenueDto: CreateVenueDto, @Req() request: IRequest) {
     const user = request.user
+    console.log("createVenueDto", createVenueDto)
     return this.venueService.createVenue(createVenueDto, user);
   }
 }

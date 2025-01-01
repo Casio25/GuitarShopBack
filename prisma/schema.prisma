@@ -14,73 +14,60 @@ datasource db {
 }
 
 model User {
-  id               Int     @id @default(autoincrement())
+  id               Int                 @id @default(autoincrement())
   firstName        String
   secondName       String?
-  email            String @unique
+  email            String              @unique
   password         String
   phoneNumber      String?
-  isEmailConfirmed Boolean @default(false)
-  roleId           Int
-  role             Role     @relation(fields: [roleId], references: [id])
-
-  Products   Product[]
-  Categories CategoriesOnUsers[]
-  Venue      Venue[]
+  isEmailConfirmed Boolean             @default(false)
+  AclEntries       Acl[]
+  Products         Product[]
+  Categories       CategoriesOnUsers[]
+  Venue            Venue[]
   OrdersOfProducts OrderOfProduct[]
-  Order Order[]
-  
-}
-model Role {
-  id          Int          @id @default(autoincrement())
-  name        String       @unique
-  description String?
-  permissions Permission[]
-  users       User[]
+  Order            Order[]
 }
 
-model Permission {
-  id          Int      @id @default(autoincrement())
-  action      String   // e.g., "read", "write", "delete"
-  resource    String   // e.g., "Product", "Order"
-  description String?
-  roleId      Int
-  role        Role     @relation(fields: [roleId], references: [id])
+model Acl {
+  id         Int        @id @default(autoincrement())
+  userId     Int
+  user       User       @relation(fields: [userId], references: [id])
+  permission Permission
+  resource   String
 }
-
 
 model Order {
-  id      Int         @id @default(autoincrement())
-  orderId Int
-  creatAt DateTime    @default(now())
-  orderStatus  OrderStatus @default(new)
-  author     User @relation(fields: [authorId], references: [id])
-  authorId Int
-  totalPrice Int
-  payment Payment[]
-  venueId    Int
-  venue      Venue    @relation(fields: [venueId], references: [id])
-  products ProductOnOrder[]
+  id          Int              @id @default(autoincrement())
+  orderId     Int
+  creatAt     DateTime         @default(now())
+  orderStatus OrderStatus      @default(new)
+  author      User             @relation(fields: [authorId], references: [id])
+  authorId    Int
+  totalPrice  Int
+  payment     Payment[]
+  venueId     Int
+  venue       Venue            @relation(fields: [venueId], references: [id])
+  products    ProductOnOrder[]
 }
 
 model ProductOnOrder {
-  id             Int      @id @default(autoincrement())
-  productId      Int
-  product        Product  @relation(fields: [productId], references: [id])
-  productName    String
-  orderId        Int
-  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id              Int     @id @default(autoincrement())
+  productId       Int
+  product         Product @relation(fields: [productId], references: [id])
+  productName     String
+  orderId         Int
+  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productQuantity Int
-  productPrice Int
-  
+  productPrice    Int
 }
 
 model Payment {
-  id     Int         @id @default(autoincrement())
+  id            Int           @id @default(autoincrement())
   paymentType   PaymentType
   paymentStatus PaymentStatus @default(unpaid)
-  orderId       Int          // Foreign key field
-  order         Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId       Int // Foreign key field
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Venue {
@@ -91,24 +78,23 @@ model Venue {
   menuId    Int
   users     User[]
   orders    Order[]
-
 }
+
 model Menu {
-  id        Int @id @default(autoincrement())
-  venue    Venue @relation(fields: [venueId], references: [id])
-  venueId  Int  @unique
-  products  Product[]
+  id       Int       @id @default(autoincrement())
+  venue    Venue     @relation(fields: [venueId], references: [id])
+  venueId  Int       @unique
+  products Product[]
 }
 
 model Category {
   id       Int                 @id @default(autoincrement())
   name     String
   type     Type                @default(private)
-  Products Product[]           
-  Users    CategoriesOnUsers[] 
-  Orders   OrderOfProduct[]    
+  Products Product[]
+  Users    CategoriesOnUsers[]
+  Orders   OrderOfProduct[]
 }
-
 
 model CategoriesOnUsers {
   id         Int      @id @default(autoincrement())
@@ -121,34 +107,32 @@ model CategoriesOnUsers {
 }
 
 model OrderOfProduct {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   order      Int
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId Int
-  author     User @relation(fields: [authorId], references: [id])
+  author     User      @relation(fields: [authorId], references: [id])
   authorId   Int
-  product Product[]
+  product    Product[]
 
   @@unique([id, categoryId])
 }
 
 model Product {
-  id          Int              @id @default(autoincrement())
-  author      User             @relation(fields: [authorId], references: [id])
-  authorId    Int
-  name        String
-  photo       String
-  description String?
-  price       Int
-  visibility  Boolean
-  inStock     Boolean
-  categories  Category[]
-  orders      OrderOfProduct[] // One product can have multiple orders across different categories
+  id             Int              @id @default(autoincrement())
+  author         User             @relation(fields: [authorId], references: [id])
+  authorId       Int
+  name           String
+  photo          String
+  description    String?
+  price          Int
+  visibility     Boolean
+  inStock        Boolean
+  categories     Category[]
+  orders         OrderOfProduct[] // One product can have multiple orders across different categories
   productOnOrder ProductOnOrder[]
-  menus Menu[]
+  menus          Menu[]
 }
-
-
 
 enum Type {
   common
@@ -169,4 +153,9 @@ enum PaymentType {
 enum PaymentStatus {
   paid
   unpaid
+}
+
+enum Permission {
+  READ
+  WRITE
 }

@@ -1,11 +1,12 @@
 import { SignInAuthDto, SignInRespDTO } from '../../Dto/auth/signin-auth.dto';
 
-import { Controller, Get, Post, Body, HttpCode, HttpStatus, Request, UseGuards, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpCode, HttpStatus, Request, UseGuards, Patch, Req } from '@nestjs/common';
 import { AuthGuard, OneTimeAuthGuard } from '../../../auth/auth.guard';
 import { AuthService } from '../../Services/auth/auth.service';
 import { CreateAuthDto } from '../../Dto/auth/create-auth.dto';
 import { UpdateAuthDto } from '../../Dto/auth/update-auth.dto';
 import { ForgotPasswordDto } from '../../Dto/auth/ForgotPassword.dto';
+import { CreateACLDto } from '@src/logic/Dto/auth/create-ACL.dto';
 
 
 @Controller('auth')
@@ -36,26 +37,26 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get("verify")
-  verifyEmail(@Request() req){
+  verifyEmail(@Req() req){
     return this.authService.verify(req.user)
   }
 
   @UseGuards(AuthGuard)
   @Patch("update")
-  update(@Request() req , @Body() updateAuthDto: UpdateAuthDto){
+  update(@Req() req , @Body() updateAuthDto: UpdateAuthDto){
     return this.authService.update(req.user, updateAuthDto)
   }
   
-  @Post("create_permission")
-  createPermission(){
-    return this.authService.createPermission()
+  @UseGuards(AuthGuard)
+  @Post("create_acl")
+  createACL(@Req() req, @Body() createACLDto: CreateACLDto){
+    return this.authService.createACL(req.user, createACLDto)
   }
   @UseGuards(AuthGuard)
   @Get("get_profile")
   @HttpCode(200)
-  async getProfile(@Request() request){
+  async getProfile(@Req() request){
     const response = await this.authService.getProfileData(request.user)
-  
     return response
   }
 

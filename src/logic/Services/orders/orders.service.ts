@@ -18,17 +18,17 @@ export class OrdersService {
     private productDataService: ProductDataService, 
     private authDataService: AuthDataService) { }
 
-  private checkAdminRole(user: User) {
-    console.log("user", user.roleId)
-    if (user.roleId !== 1) {
-      throw new UnauthorizedException("Access denied")
-    }
-  }
-  private checkForUser(user: User) {
-    if (!user) {
-      throw new NotFoundException("User not found")
-    }
-  }
+  // private checkAdminRole(user: User) {
+  //   console.log("user", user.roleId)
+  //   if (user.roleId !== 1) {
+  //     throw new UnauthorizedException("Access denied")
+  //   }
+  // }
+  // private checkForUser(user: User) {
+  //   if (!user) {
+  //     throw new NotFoundException("User not found")
+  //   }
+  // }
 
   async create(createOrderDto: CreateOrderInterface, user) {
     try{

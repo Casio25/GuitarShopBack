@@ -13,26 +13,13 @@ export class VenueService {
     private venueDataService: VenueDataService
   ) {}
 
-  private checkAdminRole(user: User) {
-    console.log("user", user.roleId)
-    if (user.roleId !== 1) {
-      throw new UnauthorizedException("Access denied")
-    }
-  }
-  private checkForUser(user: User) {
-    if (!user) {
-      throw new NotFoundException("User not found")
-    }
-  }
+ 
   async createVenue(newVenue: CreateVenue, user: IUserRequest) {
-    const userData = {
-      id: user.uid
-    }
-    const foundedUser = await this.authDataService.findUser(user.email)
-    this.checkForUser(foundedUser)
-    this.checkAdminRole(foundedUser)
+ 
+    const foundedUser = await this.authDataService.findUser(user)
     try {
-      await this.venueDataService.createVenue(newVenue, foundedUser.id)
+
+      await this.venueDataService.createVenue(newVenue.name, foundedUser.id)
     } catch (error) {
       throw new BadRequestException("Error creating venue", error);
 

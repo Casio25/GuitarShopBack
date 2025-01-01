@@ -2,8 +2,11 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { User, Role } from '@prisma/client';
+import { User} from '@prisma/client';
 import { ICreateAuth } from '../../utils/interface/authInterface';
+import { IUser } from '@src/utils/interface/IUser';
+import { IUserRequest } from '@src/utils/interface/requestInterface';
+import { ICreateACL } from '@src/utils/interface/ACLInterface';
 
 
 
@@ -24,11 +27,19 @@ export class AuthDataService {
 
     // Check if user with the same email already exists
 
-    async findUser(email: string): Promise<User | null> {
+    async findUser(userData: IUserRequest): Promise<User | null> {
+        const whereUserData: any = {};
+        if (userData.email) {
+            whereUserData.email = userData.email;
+        }
+        if (userData.uid){
+            whereUserData.id = userData.uid;
+        }
         try {
             const user =  await this.prisma.user.findFirst({
-                where: {
-                    email
+                where: whereUserData,
+                include: {
+                    Venue: true
                 }
             });
             return user || null
@@ -49,9 +60,6 @@ export class AuthDataService {
                     secondName: userData.secondName,
                     email: userData.email,
                     password: userData.password,
-                    role:{
-                        connect: {id: 1}
-                    }
                 },
             });
 
@@ -98,11 +106,11 @@ export class AuthDataService {
         }
     }
 
-    async verify(user: number){
+    async verify(uid: number){
         try{
             const verifiedUser = await this.prisma.user.update({
                 where: {
-                    id: user
+                    id: uid
                 },
                 data: {
                     isEmailConfirmed: true
@@ -117,50 +125,19 @@ export class AuthDataService {
         }
     }
 
-    async createRoleAndPermissions() {
-        try {
-            // Create a role first
-            const role = await this.prisma.role.create({
-                data: {
-                    name: 'Admin',
-                    description: 'Administrator with full permissions',
-                },
-            });
-
-            console.log('Role created:', role);
-
-            const permissions = [
-                {
-                    action: 'read',
-                    resource: 'Product',
-                    description: 'Read permission for products',
-                    roleId: role.id,
-                },
-                {
-                    action: 'write',
-                    resource: 'Product',
-                    description: 'Write permission for products',
-                    roleId: role.id,
-                },
-                {
-                    action: 'delete',
-                    resource: 'Product',
-                    description: 'Delete permission for products',
-                    roleId: role.id,
-                },
-                
-            ];
-
-            const createdPermissions = await this.prisma.permission.createMany({
-                data: permissions,
-            });
-
-            console.log('Permissions created:', createdPermissions);
-        } catch (error) {
-            console.error('Error creating role or permissions:', error);
-            throw new Error('Role or Permission not created');
+   async createACL(uid: number, ACLData: ICreateACL){
+    try{
+        const newACl = await this.prisma.acl.create({
+            data:{
+                userId: uid,
+                ...ACLData
+            }
+        })
+    }catch(error){
+        console.log("Error creating ACL", error)
+        throw new Error("Error creating ACL")
     }
-}
+   }
 
     
 
