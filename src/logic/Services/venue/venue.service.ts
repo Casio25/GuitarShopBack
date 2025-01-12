@@ -22,7 +22,24 @@ export class VenueService {
       await this.venueDataService.createVenue(newVenue.name, foundedUser.id)
     } catch (error) {
       throw new BadRequestException("Error creating venue", error);
+      console.error("Error creating venue", error)
 
+    }
+  }
+
+  async getVenue(user: IUserRequest){
+    const foundedUser = await this.authDataService.findUser(user)
+    try {
+    const venueData = await this.venueDataService.getVenue(foundedUser.id)
+    if (!venueData || venueData.length === 0) {
+      throw new NotFoundException("No venue data found")
+    }
+    return venueData
+    }catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error
+      }
+      throw new BadRequestException("Error getting venue data", error)
     }
   }
  

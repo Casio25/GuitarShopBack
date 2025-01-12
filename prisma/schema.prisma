@@ -73,17 +73,17 @@ model Payment {
 model Venue {
   id        Int      @id @default(autoincrement())
   name      String
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
-  menu      Menu?
-  menuId    Int
-  users     User[]
+  
+  products Product[]
   orders    Order[]
+  
 }
 
 model Menu {
   id       Int       @id @default(autoincrement())
-  venue    Venue     @relation(fields: [venueId], references: [id])
-  venueId  Int       @unique
   products Product[]
 }
 
@@ -132,6 +132,7 @@ model Product {
   orders         OrderOfProduct[] // One product can have multiple orders across different categories
   productOnOrder ProductOnOrder[]
   menus          Menu[]
+  venues         Venue[]
 }
 
 enum Type {

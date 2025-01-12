@@ -10,9 +10,16 @@ export class VenueController {
   constructor(private readonly venueService: VenueService) {}
   @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createVenueDto: CreateVenueDto, @Req() request: IRequest) {
+  async create(@Body() createVenueDto: CreateVenueDto, @Req() request: IRequest) {
     const user = request.user
     console.log("createVenueDto", createVenueDto)
-    return this.venueService.createVenue(createVenueDto, user);
+    await this.venueService.createVenue(createVenueDto, user);
+  }
+  @UseGuards(AuthGuard)
+  @Get()
+  async get(@Req() request: IRequest) {
+    const user = request.user
+    const response = await this.venueService.getVenue(user)
+    return response
   }
 }
