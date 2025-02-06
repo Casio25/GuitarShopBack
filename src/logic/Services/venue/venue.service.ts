@@ -18,7 +18,6 @@ export class VenueService {
  
     const foundedUser = await this.authDataService.findUser(user)
     try {
-
       await this.venueDataService.createVenue(newVenue.name, foundedUser.id)
     } catch (error) {
       throw new BadRequestException("Error creating venue", error);

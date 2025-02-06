@@ -38,7 +38,7 @@ model Acl {
 }
 
 model Order {
-  id          Int              @id @default(autoincrement())
+  id          String              @id @default(uuid())
   orderId     Int
   creatAt     DateTime         @default(now())
   orderStatus OrderStatus      @default(new)
@@ -46,7 +46,7 @@ model Order {
   authorId    Int
   totalPrice  Int
   payment     Payment[]
-  venueId     Int
+  venueId     String
   venue       Venue            @relation(fields: [venueId], references: [id])
   products    ProductOnOrder[]
 }
@@ -56,7 +56,7 @@ model ProductOnOrder {
   productId       Int
   product         Product @relation(fields: [productId], references: [id])
   productName     String
-  orderId         Int
+  orderId         String
   order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productQuantity Int
   productPrice    Int
@@ -66,12 +66,12 @@ model Payment {
   id            Int           @id @default(autoincrement())
   paymentType   PaymentType
   paymentStatus PaymentStatus @default(unpaid)
-  orderId       Int // Foreign key field
+  orderId       String // Foreign key field
   order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Venue {
-  id        Int      @id @default(autoincrement())
+  id        String      @id @default(uuid())
   name      String
   authorId  Int
   author    User     @relation(fields: [authorId], references: [id])
